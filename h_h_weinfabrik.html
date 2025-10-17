@@ -4,302 +4,391 @@
   <meta charset="UTF-8" />
   <title>H&H Weinfabrik</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link id="dynFavicon" rel="icon" href="">
+  <!-- Orbitron als frei nutzbarer Ersatzstil für Antelope H -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#0d1117;
-      --panel:#151b23;
-      --panel-2:#1b2230;
-      --ink:#f6f7f9;
-      --muted:#a9b4c2;
-      --accent:#ffd700;
-      --border:#2a3342;
-      --blur:8px;
+      --wine-900:#12060a;
+      --wine-800:#1b0b10;
+      --wine-700:#2a121b;
+      --ink:#f2eceb;
+      --muted:#cdb9b8;
+      --line:#3b1d26;
+      --focus:#c27c8b55;
+      --radius:14px;
+      --price-wine:#b31636;
     }
-    html,body{height:100%;}
+
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{height:100%}
     body{
-      margin:0;
-      font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color:var(--ink);
-      background:var(--bg) no-repeat center/cover fixed;
+      margin:0;color:var(--ink);
+      background:var(--wine-900) no-repeat center/cover fixed;
+      font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,sans-serif;
+      line-height:1.45;
     }
-    .page{max-width:1200px;margin:0 auto;padding:1.5rem;}
+    .page{max-width:1280px;margin:0 auto;padding:2rem 1.2rem}
+
     header{
       display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
-      background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.05));
-      border-radius:12px;padding:1rem 1.25rem;border:1px solid var(--border);
+      padding:1rem 1.25rem;border:1px solid var(--line);border-radius:var(--radius);
+      background:
+        radial-gradient(900px 400px at 10% -20%, rgba(194,124,139,.10), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.18));
+      box-shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
     }
-    header img.logo{height:84px;width:auto;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4));}
-    header h1{margin:.2rem 0 0;font-size:clamp(1.4rem, 2.8vw, 2rem);letter-spacing:.4px;}
-    .hint{margin:1rem 0;padding:.9rem 1rem;border-left:4px solid var(--accent);background:rgba(0,0,0,.25);border-radius:6px;}
-    .error{color:#ff9aa2;border-color:#ff9aa2;background:rgba(255,0,0,.06);}
-    /* Weine Grid (3 Spalten auf Desktop) */
-    .grid{
-      display:grid;gap:1rem;
-      grid-template-columns: repeat(3, 1fr);
+    header img.logo{height:90px;width:auto;object-fit:contain}
+    .brand h1{margin:0;font-weight:750;font-size:clamp(1.6rem,3vw,2.2rem)}
+    .brand .sub{margin:0;color:var(--muted);font-size:.98rem}
+
+    .header-text{
+      margin:1rem 0 1.2rem;padding:1rem 1.2rem;border:1px solid var(--line);
+      background:var(--wine-800);border-radius:12px;color:var(--muted)
     }
-    @media (max-width: 980px){ .grid{grid-template-columns: repeat(2, 1fr);} }
-    @media (max-width: 620px){ .grid{grid-template-columns: 1fr;} }
+    .header-text .inner{max-width:50%;white-space:pre-wrap}
+    @media (max-width:900px){.header-text .inner{max-width:100%}}
+
+    .hint{
+      margin:1rem 0 1.2rem;padding:.85rem 1rem;border:1px solid var(--line);
+      background:var(--wine-800);border-radius:12px;color:var(--muted)
+    }
+
+    hr.rule{height:1px;border:0;margin:1.4rem 0;background:linear-gradient(90deg,transparent,var(--line),transparent)}
+
+    /* ===== Weine ===== */
+    .grid{display:grid;gap:1rem;grid-template-columns:repeat(3,1fr)}
+    @media (max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:620px){.grid{grid-template-columns:1fr}}
+
     .card{
-      background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;
-      transition:transform .15s ease, box-shadow .15s ease;cursor:pointer;
+      background:var(--wine-700);border:1px solid var(--line);border-radius:var(--radius);
+      overflow:hidden;cursor:pointer;transition:transform .18s, box-shadow .18s, border-color .18s
     }
-    .card:focus,.card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.25);}
-    .card img{
-      width:100%;height:220px;object-fit:cover;background:#0b0f16;
+    .card:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(0,0,0,.35);border-color:var(--focus)}
+    .card img{width:100%;height:230px;object-fit:cover;display:block;background:#0b0f16}
+    .meta{padding:.85rem 1rem 1rem;text-align:center}
+    .name{margin:0 0 .35rem;font-weight:700}
+
+    /* Preise (Orbitron), fett & mittig */
+    .price{
+      font-family:"Orbitron","Arial Black",sans-serif;
+      font-weight:800;
+      text-align:center;
+      color:var(--price-wine);
+      letter-spacing:1px;
+      font-size:1.2rem;
+    }
+
+    /* ===== Modal ===== */
+    .overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.6);
+      display:none;align-items:center;justify-content:center;padding:1.25rem;z-index:30;
+      backdrop-filter:saturate(120%) blur(2px);
+    }
+    .overlay.show{display:flex}
+    .modal{
+      width:min(980px,96vw);max-height:92vh;overflow:auto;
+      background:var(--wine-700);border:1px solid var(--line);border-radius:18px;
+      box-shadow:0 30px 70px rgba(0,0,0,.5)
+    }
+    .modal-media img{width:100%;height:440px;object-fit:contain;display:block;background:#0b0f16}
+    .modal-body{padding:1rem 1.15rem 1.25rem}
+    .modal-title{margin:.2rem 0 .35rem;font-size:1.45rem;font-weight:800;text-align:center}
+    .modal-price{margin:0 0 .8rem;text-align:center}
+
+    /* Bild2 links (20%) – Text rechts (80%); Bild nie höher als die Beschreibung */
+    .modal-flex{
+      display:flex; gap:.5rem; align-items:flex-start;
+    }
+    .modal-left{
+      flex:0 0 20%;
+      display:flex; align-items:flex-start; justify-content:flex-start;
+      overflow:hidden;             /* Überstände abschneiden */
+      height:auto;                 /* per JS auf Höhe der Beschreibung gesetzt */
+      padding:0;
+    }
+    .modal-left img{
+      width:100%;                  /* füllt die 20%-Spalte in der Breite */
+      height:100%;                 /* füllt die Spaltenhöhe */
+      object-fit:contain;          /* Seitenverhältnis beibehalten */
       display:block;
     }
-    .card .meta{padding:.75rem .9rem .95rem;}
-    .card .name{font-weight:600;margin:0 0 .25rem;font-size:1.05rem;}
-    .card .price{color:var(--accent);font-weight:600;}
-    /* Modal + Blur-Effekt */
-    .blur-wrap.blur .content-to-blur{filter:blur(var(--blur));pointer-events:none;user-select:none;}
-    .overlay{
-      position:fixed;inset:0;background:rgba(0,0,0,.55);
-      display:none;align-items:center;justify-content:center;padding:1.25rem;z-index:30;
+    .modal-right{
+      flex:1 1 80%; min-width:0;
     }
-    .overlay.show{display:flex;}
-    .modal{
-      width:min(900px, 96vw);max-height:90vh;overflow:auto;
-      background:var(--panel-2);border:1px solid var(--border);border-radius:14px;
-      box-shadow:0 25px 60px rgba(0,0,0,.45);
+    .modal-desc{color:var(--muted);white-space:pre-wrap;margin:0}
+
+    @media (max-width:900px){
+      .modal-flex{flex-direction:column}
+      .modal-left{flex-basis:auto;height:auto}
+      .modal-left img{height:auto;max-height:60vh}
     }
-    .modal-media{position:relative;background:#0b0f16;}
-    .modal-media img{width:100%;height:420px;object-fit:contain;display:block;}
-    .modal-body{padding:1rem 1.1rem 1.2rem;}
-    .modal-title{margin:.2rem 0 .4rem;font-size:1.35rem;}
-    .modal-price{color:var(--accent);font-weight:700;margin:0 0 .6rem;}
-    .modal-desc{color:var(--muted);line-height:1.45;white-space:pre-wrap;}
-    .close-hint{color:var(--muted);font-size:.9rem;margin-top:.8rem;}
-    /* Ankauf */
-    .ankauf{
-      margin:2rem 0 1rem;background:var(--panel);border:1px solid var(--border);
-      border-radius:12px;overflow:hidden;
-    }
-    .ankauf h2{margin:0;padding:.85rem 1rem;border-bottom:1px solid var(--border);background:rgba(0,0,0,.25);}
-    .ankauf-list{padding:.5rem 1rem 1rem;display:grid;gap:.5rem;}
+
+    /* ===== Ankauf ===== */
+    .ankauf-wrap{display:grid;gap:1rem;align-items:start;grid-template-columns:1fr 1fr;margin:1.4rem 0 .6rem}
+    @media (max-width:900px){.ankauf-wrap{grid-template-columns:1fr}}
+    .ankauf-list{background:var(--wine-800);border:1px solid var(--line);border-radius:var(--radius);padding:.8rem .9rem 1rem}
+    .ankauf-list h2{margin:.2rem 0 .6rem;font-size:1.15rem}
     .ankauf-item{
-      display:flex;justify-content:space-between;gap:1rem;
-      padding:.6rem .75rem;border:1px dashed var(--border);border-radius:10px;background:rgba(0,0,0,.2);
+      display:flex;justify-content:space-between;align-items:center;
+      padding:.65rem .7rem;border:1px dashed var(--line);border-radius:12px;background:var(--wine-700)
     }
-    .ankauf-item .what{font-weight:600;}
-    .ankauf-item .price{color:var(--accent);font-weight:700;}
-    a, button{color:inherit}
-    .sr-only{position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;}
+    .ankauf-item .what{font-weight:650}
+    .ankauf-item .price{min-width:120px}
+
+    .ankauf-media{
+      background:transparent;border:none;padding:0;display:flex;justify-content:flex-start;align-items:flex-start;height:100%
+    }
+    .ankauf-media img{
+      border:none;background:transparent;max-width:100%;max-height:100%;
+      object-fit:contain;object-position:left top;display:block
+    }
+
+    /* ===== Standort & Fotos ===== */
+    .section{background:var(--wine-800);border:1px solid var(--line);border-radius:var(--radius);padding:1rem 1.2rem;margin:1.2rem 0}
+    .section .desc{color:var(--muted);margin:0 0 .8rem}
+    .photo-row{display:grid;gap:.9rem;grid-template-columns:1fr}
+    @media (min-width:900px){.photo-row{grid-template-columns:1fr 1fr}}
+    .photo{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
+
+    footer.footer{margin:1.5rem 0 .5rem;color:var(--muted);font-size:.85rem;text-align:center}
+    footer.footer a{color:var(--ink);text-decoration:underline}
   </style>
 </head>
 <body>
-  <div class="blur-wrap" id="blurWrap">
-    <div class="page content-to-blur">
-      <header>
-        <img class="logo" id="logoImg" alt="H&H Weinfabrik Logo" />
+  <div class="page">
+    <header>
+      <img class="logo" id="logoImg" alt="Logo" />
+      <div class="brand">
         <h1>H&amp;H Weinfabrik</h1>
-      </header>
+        <p class="sub" id="logoDesc"></p>
+      </div>
+    </header>
 
-      <div id="hint" class="hint">🔄 Lade Daten aus Google Sheets …</div>
+    <!-- Header-Text -->
+    <div id="headerText" class="header-text" hidden><div class="inner" id="headerTextInner"></div></div>
 
-      <section aria-labelledby="weineTitle">
-        <h2 id="weineTitle" class="sr-only">Unsere Weine</h2>
-        <div id="weineGrid" class="grid"></div>
-      </section>
+    <!-- Ladehinweis -->
+    <div id="hint" class="hint">🔄 Lade Daten aus Google Sheets …</div>
 
-      <section class="ankauf" aria-labelledby="ankaufTitle">
-        <h2 id="ankaufTitle">Ankauf</h2>
-        <div id="ankaufList" class="ankauf-list"></div>
-      </section>
-    </div>
+    <!-- Weine -->
+    <section>
+      <div id="weineGrid" class="grid"></div>
+    </section>
 
-    <!-- Modal / Overlay -->
-    <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <div class="modal" id="modalCard">
-        <div class="modal-media">
-          <img id="modalImg" alt="" />
+    <hr class="rule" />
+
+    <!-- Ankauf -->
+    <section>
+      <div class="ankauf-wrap">
+        <div class="ankauf-list" id="ankaufListBlock">
+          <h2>Ankauf</h2>
+          <ul id="ankaufList"></ul>
         </div>
-        <div class="modal-body">
-          <h3 id="modalTitle" class="modal-title"></h3>
-          <div id="modalPrice" class="modal-price"></div>
-          <div id="modalDesc" class="modal-desc"></div>
-          <div class="close-hint">Tipp: Nochmal auf den Wein klicken, um zu schließen.</div>
+        <div class="ankauf-media"><img id="ankaufImg" alt="Ankauf"></div>
+      </div>
+    </section>
+
+    <!-- Standort -->
+    <section class="section" id="standortSection" hidden>
+      <h2>Standort</h2>
+      <p class="desc" id="standortDesc"></p>
+      <img id="standortImg" class="photo" alt="Standort" />
+      <div class="photo-row">
+        <img id="photo1" class="photo" alt="Foto 1" />
+        <img id="photo2" class="photo" alt="Foto 2" />
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="siteFooter" class="footer" hidden>
+      <div id="footerDesc"></div>
+      <div><a id="footerLink" href="#" target="_blank" rel="noopener"></a></div>
+    </footer>
+  </div>
+
+  <!-- Modal -->
+  <div id="overlay" class="overlay">
+    <div class="modal">
+      <div class="modal-media"><img id="modalImg" alt=""></div>
+      <div class="modal-body">
+        <h3 id="modalTitle" class="modal-title"></h3>
+        <div id="modalPrice" class="modal-price price"></div>
+
+        <!-- Bild2 links (20%), Text rechts (80%) -->
+        <div class="modal-flex" id="modalFlex">
+          <div class="modal-left" id="modalLeft">
+            <img id="modalImg2" alt="Weinbild 2">
+          </div>
+          <div class="modal-right">
+            <div id="modalDesc" class="modal-desc"></div>
+          </div>
         </div>
+
       </div>
     </div>
   </div>
 
 <script>
-/* ====== Konfiguration ====== */
-const SHEET_ID   = "18Q64WpaE2NAEmva0Y8dABSamcMfzcbVp2CJ1ToZ9Il8";
-const TAB_WEBSITE= "Website";
-const TAB_WEINE  = "Weine";
-const TAB_ANKAUF = "Ankauf";
+const SHEET_ID="18Q64WpaE2NAEmva0Y8dABSamcMfzcbVp2CJ1ToZ9Il8";
+const TAB_WEBSITE="Website",TAB_WEINE="Weine",TAB_ANKAUF="Ankauf";
 
-/* ====== DOM ====== */
-const hintEl     = document.getElementById('hint');
-const weineGrid  = document.getElementById('weineGrid');
-const ankaufList = document.getElementById('ankaufList');
-const logoImg    = document.getElementById('logoImg');
-const overlay    = document.getElementById('overlay');
-const blurWrap   = document.getElementById('blurWrap');
-const modalImg   = document.getElementById('modalImg');
-const modalTitle = document.getElementById('modalTitle');
-const modalPrice = document.getElementById('modalPrice');
-const modalDesc  = document.getElementById('modalDesc');
+const logoImg=document.getElementById("logoImg"),logoDescEl=document.getElementById("logoDesc");
+const headerText=document.getElementById("headerText"),headerTextInner=document.getElementById("headerTextInner");
+const hintEl=document.getElementById("hint");
+const weineGrid=document.getElementById("weineGrid");
+const ankaufList=document.getElementById("ankaufList"),ankaufImg=document.getElementById("ankaufImg"),ankaufListBlock=document.getElementById("ankaufListBlock");
+const standortSection=document.getElementById("standortSection"),standortDescEl=document.getElementById("standortDesc"),
+      standortImg=document.getElementById("standortImg"),photo1Img=document.getElementById("photo1"),photo2Img=document.getElementById("photo2");
+const siteFooter=document.getElementById("siteFooter"),footerDescEl=document.getElementById("footerDesc"),footerLinkEl=document.getElementById("footerLink");
+const overlay=document.getElementById("overlay"),modalImg=document.getElementById("modalImg"),modalTitle=document.getElementById("modalTitle"),
+      modalPrice=document.getElementById("modalPrice"),modalDesc=document.getElementById("modalDesc"),modalImg2=document.getElementById("modalImg2"),
+      modalLeft=document.getElementById("modalLeft");
+const faviconEl=document.getElementById("dynFavicon");
 
-/* ====== Helpers ====== */
-function gvizJSONP(sheetName, timeoutMs=15000){
-  return new Promise((resolve,reject)=>{
-    const cb = "gvizCb_"+Math.random().toString(36).slice(2);
-    const url= `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json,responseHandler:${cb}&headers=1&sheet=${encodeURIComponent(sheetName)}`;
-    const script=document.createElement("script");
-    let to=setTimeout(()=>{cleanup();reject(new Error("Timeout beim Laden der Tabelle: "+sheetName));}, timeoutMs);
-    function cleanup(){ clearTimeout(to); try{delete window[cb];}catch(_){} if(script.parentNode) script.parentNode.removeChild(script); }
-    window[cb]=(payload)=>{
-      cleanup();
-      try{
-        const cols = payload.table.cols.map(c => (c.label||c.id||"").trim());
-        const rows = payload.table.rows.map(r=>{
-          const o={}; (r.c||[]).forEach((cell,i)=>o[cols[i]||("c"+i)]=cell?cell.v:"");
-          return o;
-        });
-        resolve(rows);
-      }catch(e){ reject(e); }
-    };
-    script.src=url;
-    script.onerror=()=>{cleanup();reject(new Error("GViz Fehler für: "+sheetName));};
-    document.head.appendChild(script);
-  });
+/* Google Sheets GViz Loader */
+function gvizJSONP(sheet){return new Promise((res,rej)=>{const cb="cb_"+Math.random().toString(36).slice(2);
+  const u=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json,responseHandler:${cb}&headers=1&sheet=${sheet}`;
+  const s=document.createElement("script");let to=setTimeout(()=>{rej("Timeout "+sheet);cleanup();},15000);
+  function cleanup(){clearTimeout(to);try{delete window[cb];}catch{}s.remove();}
+  window[cb]=p=>{cleanup();try{const c=p.table.cols.map(c=>(c.label||c.id||"").trim());
+    const r=p.table.rows.map(r=>{const o={};(r.c||[]).forEach((x,i)=>o[c[i]||"c"+i]=x?x.v:"");return o;});res(r);}catch(e){rej(e);}};
+  s.src=u;document.head.appendChild(s);
+});}
+
+/* Euroformat */
+function euro(v){
+  if(v==null||v==="")return"";
+  let s=String(v).trim().replace(/[^\d.,-]/g,"");
+  if(!s)return"";
+  const d=s.lastIndexOf("."),c=s.lastIndexOf(",");const comma=c>d;
+  if(comma){s=s.replace(/\./g,"").replace(",",".");}else{s=s.replace(/,/g,"");}
+  const n=Number(s);return isFinite(n)?n.toLocaleString("de-DE")+" €":String(v);
 }
-const fmtPrice = v => String(v ?? "").toString().trim();
+function euroProStueck(v){const t=euro(v);return t? t.replace(/\s*€$/," €")+"/St.":"";}
 
-/* ====== UI Build ====== */
-function setBackground(url){
-  if(!url) return;
-  document.body.style.backgroundImage = `url("${url}")`;
+/* Karten */
+function buildWineCard(w){
+  const c=document.createElement("article");c.className="card";
+  const img=document.createElement("img");img.src=w.BildAI||w.Bild||"";img.alt=w.Name||"Wein";
+  const meta=document.createElement("div");meta.className="meta";
+  const name=document.createElement("p");name.className="name";name.textContent=w.Name||"";
+  const price=document.createElement("div");price.className="price";price.textContent=euro(w.Preis||"");
+  meta.append(name,price);c.append(img,meta);
+  c.onclick=()=>showModal(w);
+  return c;
 }
-function setLogo(url){
-  if(!url) return;
-  logoImg.src = url;
-  logoImg.addEventListener('error', ()=>{ logoImg.removeAttribute('src'); });
+
+/* Modal anzeigen */
+function showModal(w){
+  modalImg.src=w.BildAI||w.Bild||"";
+  modalTitle.textContent=w.Name||"";
+  modalPrice.textContent=euro(w.Preis||"");
+  modalDesc.textContent=(w.Beschreibung||"").toString().trim();
+
+  if(w.Bild2){
+    modalImg2.src=w.Bild2;
+    modalLeft.style.display="flex";
+    modalImg2.style.display="block";
+    if(modalImg2.complete){ syncModalHeights(); }
+    else { modalImg2.onload = ()=>syncModalHeights(); }
+  }else{
+    modalImg2.removeAttribute("src");
+    modalImg2.style.display="none";
+    modalLeft.style.display="none";
+  }
+
+  overlay.classList.add("show");
+  requestAnimationFrame(syncModalHeights);
 }
-function buildWineCard(wine){
-  const card = document.createElement('article');
-  card.className = 'card';
-  card.tabIndex = 0;
-  card.setAttribute('role','button');
-  card.setAttribute('aria-label', `${wine.Name} – ${wine.Preis}`);
 
-  const img = document.createElement('img');
-  img.alt = wine.Name || "Wein";
-  img.src = wine.Bild || "";
+/* Klick außerhalb schließt Modal */
+overlay.onclick=()=>overlay.classList.remove("show");
 
-  const meta = document.createElement('div');
-  meta.className = 'meta';
-
-  const name = document.createElement('p');
-  name.className = 'name';
-  name.textContent = wine.Name || "Unbenannter Wein";
-
-  const price = document.createElement('div');
-  price.className = 'price';
-  price.textContent = fmtPrice(wine.Preis || "");
-
-  meta.appendChild(name);
-  meta.appendChild(price);
-  card.appendChild(img);
-  card.appendChild(meta);
-
-  // Klick/Enter → Modal
-  const openModal = () => showModal(wine);
-  card.addEventListener('click', openModal);
-  card.addEventListener('keydown', (e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openModal(); } });
-
-  return card;
+/* Bild2 nie höher als NUR der Beschreibungs-Block (#modalDesc) */
+function syncModalHeights(){
+  if(window.matchMedia("(max-width: 900px)").matches){
+    modalLeft.style.height = "auto";
+    return;
+  }
+  if(modalLeft.style.display==="none") return;
+  const descH = document.getElementById("modalDesc").getBoundingClientRect().height;
+  const minH = 80;
+  modalLeft.style.height = Math.max(descH, minH) + "px";
 }
-function showModal(wine){
-  modalImg.src = wine.Bild || "";
-  modalImg.alt = wine.Name || "Wein";
-  modalTitle.textContent = wine.Name || "";
-  modalPrice.textContent = fmtPrice(wine.Preis || "");
-  modalDesc.textContent  = (wine.Beschreibung||"").toString().trim();
-  overlay.classList.add('show');
-  blurWrap.classList.add('blur');
-}
-function hideModal(){
-  overlay.classList.remove('show');
-  blurWrap.classList.remove('blur');
-}
-overlay.addEventListener('click', (e)=>{
-  // klickt man außerhalb der Karte oder auf die Karte selbst erneut → schließen
-  if(e.target === overlay || e.target.closest('#modalCard')) hideModal();
-});
-document.addEventListener('keydown', (e)=>{ if(e.key==="Escape") hideModal(); });
 
-/* ====== Daten laden & rendern ====== */
-(async function init(){
+/* Ankauf-Höhensync */
+function syncAnkaufHeights(){
+  const h=ankaufListBlock.getBoundingClientRect().height;
+  ankaufImg.style.maxHeight=h+"px";
+}
+
+/* Init */
+(async()=>{
   try{
-    hintEl.textContent = "🔄 Lade Daten …";
+    const [ws,weine,ank]=await Promise.all([gvizJSONP(TAB_WEBSITE),gvizJSONP(TAB_WEINE),gvizJSONP(TAB_ANKAUF)]);
 
-    const [websiteRows, weinRows, ankaufRows] = await Promise.all([
-      gvizJSONP(TAB_WEBSITE).catch(()=>[]),
-      gvizJSONP(TAB_WEINE).catch(()=>[]),
-      gvizJSONP(TAB_ANKAUF).catch(()=>[])
-    ]);
+    // Website
+    let logo="",bg="",fav="",descLogo="",headerDesc="",ankImgURL="",standort="",descStandort="",p1="",p2="",footerD="",footerL="";
+    ws.forEach(r=>{
+      const f=(r.Funktion||"").toLowerCase();
+      if(f==="logo"){logo=r.Link;descLogo=r.Beschreibung}
+      if(f==="hintergrund"){bg=r.Link}
+      if(f==="favicon-link"||f==="favicon"){fav=r.Link}
+      if(f==="header"){headerDesc=r.Beschreibung}
+      if(f==="ankauf"){ankImgURL=r.Link}
+      if(f==="standort"){standort=r.Link;descStandort=r.Beschreibung}
+      if(f==="photo1"){p1=r.Link}
+      if(f==="photo2"){p2=r.Link}
+      if(f==="footer"){footerD=r.Beschreibung;footerL=r.Link}
+    });
+    if(logo)logoImg.src=logo;
+    if(bg)document.body.style.backgroundImage=`url('${bg}')`;
+    if(fav)faviconEl.href=fav;
+    logoDescEl.textContent=descLogo||"";
+    if(headerDesc){headerTextInner.textContent=headerDesc;headerText.hidden=false;}
 
-    // Website: ID | Funktion | Link  (wir nutzen Funktion=Logo/Hintergrund)
-    let logoURL="", bgURL="";
-    for(const r of websiteRows){
-      const f = String(r.Funktion||"").trim().toLowerCase();
-      const link = String(r.Link||"").trim();
-      if(f==="logo")        logoURL = link || logoURL;
-      if(f==="hintergrund") bgURL   = link || bgURL;
-    }
-    setLogo(logoURL);
-    setBackground(bgURL);
+    // Weine
+    weineGrid.innerHTML="";
+    weine.forEach(r=>{
+      const w={ID:r.ID,Name:r.Name,Beschreibung:r.Beschreibung,Preis:r.Preis,BildAI:r.BildAI,Bild2:r.Bild2,Bild:r.Bild};
+      if(w.Name&&(w.BildAI||w.Bild)) weineGrid.append(buildWineCard(w));
+    });
 
-    // Weine: ID | Name | Beschreibung | Preis | Bild
-    const wines = weinRows
-      .map(r=>({
-        ID: r.ID,
-        Name: r.Name,
-        Beschreibung: r.Beschreibung,
-        Preis: r.Preis,
-        Bild: r.Bild
-      }))
-      // optional: leere ohne Bild/Name herausfiltern
-      .filter(w => (w.Name && w.Bild));
+    // Ankauf
+    if(ankImgURL)ankaufImg.src=ankImgURL;
+    ankaufList.innerHTML="";
+    ank.forEach(a=>{
+      const li=document.createElement("li");li.className="ankauf-item";
+      li.innerHTML=`<div class="what">${a.Anwendung||""}</div><div class="price">${euroProStueck(a.Preis||"")}</div>`;
+      ankaufList.append(li);
+    });
 
-    if(!wines.length){
-      weineGrid.innerHTML = `<div class="hint error">Keine Weine gefunden. Bitte Tabelle "${TAB_WEINE}" prüfen.</div>`;
-    } else {
-      weineGrid.innerHTML = "";
-      for(const w of wines){ weineGrid.appendChild(buildWineCard(w)); }
-    }
-
-    // Ankauf: ID | Anwendung | Preis
-    const buys = ankaufRows.map(r=>({ Anwendung:r.Anwendung, Preis:r.Preis }))
-                           .filter(x => x.Anwendung || x.Preis);
-    if(!buys.length){
-      ankaufList.innerHTML = `<div class="hint">Keine Ankaufdaten vorhanden.</div>`;
-    }else{
-      ankaufList.innerHTML = "";
-      for(const b of buys){
-        const row = document.createElement('div');
-        row.className = 'ankauf-item';
-        const what = document.createElement('div');
-        what.className = 'what';
-        what.textContent = b.Anwendung || "—";
-        const price = document.createElement('div');
-        price.className = 'price';
-        price.textContent = fmtPrice(b.Preis || "");
-        row.appendChild(what);
-        row.appendChild(price);
-        ankaufList.appendChild(row);
-      }
+    // Standort & Fotos
+    if(standort||descStandort||p1||p2){
+      standortSection.hidden=false;
+      standortDescEl.textContent=descStandort||"";
+      if(standort)standortImg.src=standort;
+      if(p1)photo1Img.src=p1;
+      if(p2)photo2Img.src=p2;
     }
 
-    hintEl.textContent = "🍷 Willkommen bei der H&H Weinfabrik!";
-  }catch(err){
-    console.error(err);
-    hintEl.classList.add('error');
-    hintEl.textContent = "❌ Fehler beim Laden der Daten: " + err.message;
+    // Footer
+    if(footerD||footerL){
+      if(footerD)document.getElementById("footerDesc").textContent=footerD;
+      if(footerL){document.getElementById("footerLink").textContent=footerL;document.getElementById("footerLink").href=footerL;}
+      document.getElementById("siteFooter").hidden=false;
+    }
+
+  }catch(e){
+    console.error(e);
+    const err=document.createElement("div");err.className="hint";err.textContent="❌ Fehler beim Laden: "+e;
+    document.querySelector(".page").prepend(err);
+  }finally{
+    if(hintEl && hintEl.parentNode) hintEl.parentNode.removeChild(hintEl);
+    syncAnkaufHeights();
+    window.addEventListener("resize",()=>{ syncAnkaufHeights(); syncModalHeights(); });
   }
 })();
 </script>
