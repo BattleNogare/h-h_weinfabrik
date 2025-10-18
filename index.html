@@ -5,7 +5,7 @@
   <title>H&H Weinfabrik</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link id="dynFavicon" rel="icon" href="">
-  <!-- Orbitron als frei nutzbarer Ersatzstil für Antelope H -->
+  <!-- Orbitron als frei nutzbarer Ersatzstil (Antelope-H-Look) -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&display=swap" rel="stylesheet">
   <style>
     :root{
@@ -97,26 +97,17 @@
     .modal-title{margin:.2rem 0 .35rem;font-size:1.45rem;font-weight:800;text-align:center}
     .modal-price{margin:0 0 .8rem;text-align:center}
 
-    /* Bild2 links (20%) – Text rechts (80%); Bild nie höher als die Beschreibung */
-    .modal-flex{
-      display:flex; gap:.5rem; align-items:flex-start;
-    }
+    /* Bild2 links (20%), Text rechts (80%); Bild nie höher als die Beschreibung */
+    .modal-flex{display:flex;gap:.5rem;align-items:flex-start}
     .modal-left{
       flex:0 0 20%;
-      display:flex; align-items:flex-start; justify-content:flex-start;
-      overflow:hidden;             /* Überstände abschneiden */
-      height:auto;                 /* per JS auf Höhe der Beschreibung gesetzt */
-      padding:0;
+      display:flex;align-items:flex-start;justify-content:flex-start;
+      overflow:hidden; height:auto; padding:0; /* Höhe per JS auf Beschreibungs-Höhe gesetzt */
     }
     .modal-left img{
-      width:100%;                  /* füllt die 20%-Spalte in der Breite */
-      height:100%;                 /* füllt die Spaltenhöhe */
-      object-fit:contain;          /* Seitenverhältnis beibehalten */
-      display:block;
+      width:100%; height:100%; object-fit:contain; display:block;
     }
-    .modal-right{
-      flex:1 1 80%; min-width:0;
-    }
+    .modal-right{flex:1 1 80%;min-width:0}
     .modal-desc{color:var(--muted);white-space:pre-wrap;margin:0}
 
     @media (max-width:900px){
@@ -130,24 +121,29 @@
     @media (max-width:900px){.ankauf-wrap{grid-template-columns:1fr}}
     .ankauf-list{background:var(--wine-800);border:1px solid var(--line);border-radius:var(--radius);padding:.8rem .9rem 1rem}
     .ankauf-list h2{margin:.2rem 0 .6rem;font-size:1.15rem}
-    .ankauf-item{
-      display:flex;justify-content:space-between;align-items:center;
-      padding:.65rem .7rem;border:1px dashed var(--line);border-radius:12px;background:var(--wine-700)
-    }
+    .ankauf-item{display:flex;justify-content:space-between;align-items:center;padding:.65rem .7rem;border:1px dashed var(--line);border-radius:12px;background:var(--wine-700)}
     .ankauf-item .what{font-weight:650}
     .ankauf-item .price{min-width:120px}
-
-    .ankauf-media{
-      background:transparent;border:none;padding:0;display:flex;justify-content:flex-start;align-items:flex-start;height:100%
-    }
-    .ankauf-media img{
-      border:none;background:transparent;max-width:100%;max-height:100%;
-      object-fit:contain;object-position:left top;display:block
-    }
+    .ankauf-media{background:transparent;border:none;padding:0;display:flex;justify-content:flex-start;align-items:flex-start;height:100%}
+    .ankauf-media img{border:none;background:transparent;max-width:100%;max-height:100%;object-fit:contain;object-position:left top;display:block}
 
     /* ===== Standort & Fotos ===== */
     .section{background:var(--wine-800);border:1px solid var(--line);border-radius:var(--radius);padding:1rem 1.2rem;margin:1.2rem 0}
     .section .desc{color:var(--muted);margin:0 0 .8rem}
+
+    /* Standortbild: volle Breite, vollständige Darstellung (kein Beschnitt) */
+    #standortImg{
+      width:100%;
+      height:auto;
+      object-fit:contain;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#0b0f16;
+      display:block;
+      margin-bottom:1rem;
+    }
+
+    /* Photo1 & Photo2: gleich groß, Seitenverhältnis 16:9, Beschnitt erlaubt */
     .photo-row{display:grid;gap:.9rem;grid-template-columns:1fr}
     @media (min-width:900px){.photo-row{grid-template-columns:1fr 1fr}}
     .photo{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
@@ -194,7 +190,7 @@
     <section class="section" id="standortSection" hidden>
       <h2>Standort</h2>
       <p class="desc" id="standortDesc"></p>
-      <img id="standortImg" class="photo" alt="Standort" />
+      <img id="standortImg" alt="Standort" />
       <div class="photo-row">
         <img id="photo1" class="photo" alt="Foto 1" />
         <img id="photo2" class="photo" alt="Foto 2" />
@@ -313,9 +309,8 @@ function syncModalHeights(){
     return;
   }
   if(modalLeft.style.display==="none") return;
-  const descH = document.getElementById("modalDesc").getBoundingClientRect().height;
-  const minH = 80;
-  modalLeft.style.height = Math.max(descH, minH) + "px";
+  const descH = modalDesc.getBoundingClientRect().height;
+  modalLeft.style.height = Math.max(descH, 80) + "px"; // Mindesthöhe 80px
 }
 
 /* Ankauf-Höhensync */
@@ -349,7 +344,7 @@ function syncAnkaufHeights(){
     logoDescEl.textContent=descLogo||"";
     if(headerDesc){headerTextInner.textContent=headerDesc;headerText.hidden=false;}
 
-    // Weine
+    // Weine (BildAI als Hauptbild, Bild2 für Modal links)
     weineGrid.innerHTML="";
     weine.forEach(r=>{
       const w={ID:r.ID,Name:r.Name,Beschreibung:r.Beschreibung,Preis:r.Preis,BildAI:r.BildAI,Bild2:r.Bild2,Bild:r.Bild};
@@ -376,9 +371,9 @@ function syncAnkaufHeights(){
 
     // Footer
     if(footerD||footerL){
-      if(footerD)document.getElementById("footerDesc").textContent=footerD;
-      if(footerL){document.getElementById("footerLink").textContent=footerL;document.getElementById("footerLink").href=footerL;}
-      document.getElementById("siteFooter").hidden=false;
+      if(footerD)footerDescEl.textContent=footerD;
+      if(footerL){footerLinkEl.textContent=footerL;footerLinkEl.href=footerL;}
+      siteFooter.hidden=false;
     }
 
   }catch(e){
@@ -386,6 +381,7 @@ function syncAnkaufHeights(){
     const err=document.createElement("div");err.className="hint";err.textContent="❌ Fehler beim Laden: "+e;
     document.querySelector(".page").prepend(err);
   }finally{
+    // Ladehinweis immer entfernen + Höhensyncs
     if(hintEl && hintEl.parentNode) hintEl.parentNode.removeChild(hintEl);
     syncAnkaufHeights();
     window.addEventListener("resize",()=>{ syncAnkaufHeights(); syncModalHeights(); });
