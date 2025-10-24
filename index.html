@@ -103,7 +103,7 @@
     .modal-left{
       flex:0 0 20%;
       display:flex;align-items:flex-start;justify-content:flex-start;
-      overflow:hidden; height:auto; padding:0; /* Höhe per JS auf Beschreibungs-Höhe gesetzt */
+      overflow:hidden; height:auto; padding:0;
     }
     .modal-left img{
       width:100%; height:100%; object-fit:contain; display:block;
@@ -283,18 +283,17 @@ function euroProStueck(v){
   return t ? t.replace(/\s*€$/," €")+"/St." : "";
 }
 
-/* NEU: Preisformat für Weine */
+/* Preisformat für Weine */
 function formatWinePrice(raw){
-  // leer?
   if(raw == null || String(raw).trim() === ""){
     return "Preis auf Anfrage";
   }
   const txt = String(raw).trim();
-  // wenn schon € drin ist, einfach zurückgeben
-  if (/[€]/.test(txt)) {
+  // Wenn schon ein € drin ist (z.B. "650€ - 1200€"), einfach übernehmen
+  if (txt.includes("€")) {
     return txt;
   }
-  // ansonsten € anhängen
+  // Falls keine € drin ist -> "… €"
   return txt + " €";
 }
 
