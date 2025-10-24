@@ -70,7 +70,7 @@
     .meta{padding:.85rem 1rem 1rem;text-align:center}
     .name{margin:0 0 .35rem;font-weight:700}
 
-    /* Preise (Orbitron), fett & mittig */
+    /* Preise (Orbitron), fett & mittig) */
     .price{
       font-family:"Orbitron","Arial Black",sans-serif;
       font-weight:800;
@@ -132,7 +132,6 @@
     .section{background:var(--wine-800);border:1px solid var(--line);border-radius:var(--radius);padding:1rem 1.2rem;margin:1.2rem 0}
     .section .desc{color:var(--muted);margin:0 0 .8rem}
 
-    /* Standortbild: volle Breite, vollständige Darstellung (kein Beschnitt) */
     #standortImg{
       width:100%;
       height:auto;
@@ -144,7 +143,6 @@
       margin-bottom:1rem;
     }
 
-    /* Photo1 & Photo2: gleich groß, Seitenverhältnis 16:9, Beschnitt erlaubt */
     .photo-row{display:grid;gap:.9rem;grid-template-columns:1fr}
     @media (min-width:900px){.photo-row{grid-template-columns:1fr 1fr}}
     .photo{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
@@ -283,18 +281,10 @@ function euroProStueck(v){
   return t ? t.replace(/\s*€$/," €")+"/St." : "";
 }
 
-/* Preisformat für Weine */
+/* Preisformat für Weine:
+   Zeig GENAU das an, was im Sheet steht. Keine € hinzufügen, nichts ersetzen. */
 function formatWinePrice(raw){
-  if(raw == null || String(raw).trim() === ""){
-    return "Preis auf Anfrage";
-  }
-  const txt = String(raw).trim();
-  // Wenn schon ein € drin ist (z.B. "650€ - 1200€"), einfach übernehmen
-  if (txt.includes("€")) {
-    return txt;
-  }
-  // Falls keine € drin ist -> "… €"
-  return txt + " €";
+  return (raw ?? "").toString().trim();
 }
 
 /* Karten */
@@ -327,7 +317,7 @@ function showModal(w){
   modalImg.src=w.BildAI||w.Bild||"";
   modalTitle.textContent=w.Name||"";
 
-  // Modal-Preis mit neuem Format
+  // Modal-Preis: direkt aus Sheet
   modalPrice.textContent=formatWinePrice(w.Preis);
 
   modalDesc.textContent=(w.Beschreibung||"").toString().trim();
@@ -456,7 +446,7 @@ function syncAnkaufHeights(){
     err.textContent="❌ Fehler beim Laden: "+e;
     document.querySelector(".page").prepend(err);
   }finally{
-    // Ladehinweis immer entfernen + Höhensyncs
+    // Ladehinweis weg + Höhensyncs
     if(hintEl && hintEl.parentNode) hintEl.parentNode.removeChild(hintEl);
     syncAnkaufHeights();
     window.addEventListener("resize", ()=>{
