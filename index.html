@@ -227,7 +227,7 @@ const overlay=document.getElementById("overlay"),modalImg=document.getElementByI
       modalLeft=document.getElementById("modalLeft");
 const faviconEl=document.getElementById("dynFavicon");
 
-/* Sheets Loader */
+/* Google Sheets Loader */
 function gvizJSONP(sheet){
   return new Promise((res,rej)=>{
     const cb="cb_"+Math.random().toString(36).slice(2);
@@ -254,34 +254,45 @@ function gvizJSONP(sheet){
   });
 }
 
-/* Preis auswählen:
-   1. Wenn r.Preis definiert ist und nicht leer → nimm das.
-   2. Sonst: nimm den "besten" anderen Wert aus der Zeile (längster String, der nicht komplett leer ist).
-*/
+/* Hilfsfunktion: sieht ein String aus wie ein Preis? */
+function looksLikePrice(txt){
+  const t = txt.trim();
+  if (!t) return false;
+  if (t.includes("€")) return true;
+  // Beispiele erlauben:
+  // "650"
+  // "650,-"
+  // "1.200"
+  // "650 - 1200"
+  // "ab 900"
+  return /^(ab\s*)?\d[\d\s\.,-]*(\d)?(\s*-\s*\d[\d\s\.,-]*)?$/i.test(t);
+}
+
+/* Preis auswählen, ohne dass der Weinname reingezogen wird */
 function pickPreisSmart(rowObj){
-  if (rowObj.Preis !== undefined && String(rowObj.Preis).trim() !== "") {
-    return String(rowObj.Preis).trim();
+  // 1. Direkter Wert aus der Spalte "Preis"
+  if (rowObj.Preis !== undefined) {
+    const direct = String(rowObj.Preis).trim();
+    if (direct !== "") {
+      return direct;
+    }
   }
 
-  let fallback = "";
+  // 2. Ansonsten: nimm das erste Feld, das wie ein Preis aussieht
   for (const key of Object.keys(rowObj)) {
     const val = rowObj[key];
     if (val === undefined || val === null) continue;
     const txt = String(val).trim();
     if (!txt) continue;
-    // Wir wollen hier keine Beschreibung oder Bild-URL als Preis missbrauchen.
-    // Deswegen skippen wir Felder, die wie URLs aussehen oder sehr lang sind.
-    const looksLikeURL = /^https?:\/\//i.test(txt);
-    if (looksLikeURL) continue;
-    if (txt.length > 60) continue; // sehr langer Text => eher Beschreibung
-
-    // Behalte den längsten Kandidaten, z.B. "650€ - 1200€" statt nur "650€"
-    if (txt.length > fallback.length) {
-      fallback = txt;
+    if (/^https?:\/\//i.test(txt)) continue;   // keine URLs
+    if (txt.length > 60) continue;             // keine langen Beschreibungen
+    if (looksLikePrice(txt)) {
+      return txt;
     }
   }
 
-  return fallback;
+  // 3. Nichts Passendes gefunden
+  return "";
 }
 
 /* Ankaufpreis formatieren (€/St.) */
