@@ -227,7 +227,7 @@ const overlay=document.getElementById("overlay"),modalImg=document.getElementByI
       modalLeft=document.getElementById("modalLeft");
 const faviconEl=document.getElementById("dynFavicon");
 
-/* Google Sheets GViz Loader */
+/* Sheets Loader */
 function gvizJSONP(sheet){
   return new Promise((res,rej)=>{
     const cb="cb_"+Math.random().toString(36).slice(2);
@@ -238,39 +238,53 @@ function gvizJSONP(sheet){
     window[cb]=p=>{
       cleanup();
       try{
-        const c=p.table.cols.map(c=>(c.label||c.id||"").trim());
-        const r=p.table.rows.map(r=>{
+        const cols=p.table.cols.map(c=>(c.label||c.id||"").trim());
+        const rows=p.table.rows.map(r=>{
           const o={};
-          (r.c||[]).forEach((x,i)=>o[c[i]||"c"+i]=x?x.v:"");
+          (r.c||[]).forEach((cell,i)=>{
+            o[cols[i]||("c"+i)]=cell?cell.v:"";
+          });
           return o;
         });
-        res(r);
+        res(rows);
       }catch(e){rej(e);}
     };
-    s.src=u;document.head.appendChild(s);
+    s.src=u;
+    document.head.appendChild(s);
   });
 }
 
-/* Preis aus einer Wein-Zeile extrahieren:
-   - nimm ALLE Werte der Zeile, die ein "€" enthalten
-   - davon den längsten String
+/* Preis auswählen:
+   1. Wenn r.Preis definiert ist und nicht leer → nimm das.
+   2. Sonst: nimm den "besten" anderen Wert aus der Zeile (längster String, der nicht komplett leer ist).
 */
-function pickPreisFromRow(rowObj){
-  let kandidat = "";
+function pickPreisSmart(rowObj){
+  if (rowObj.Preis !== undefined && String(rowObj.Preis).trim() !== "") {
+    return String(rowObj.Preis).trim();
+  }
+
+  let fallback = "";
   for (const key of Object.keys(rowObj)) {
     const val = rowObj[key];
-    if(!val) continue;
+    if (val === undefined || val === null) continue;
     const txt = String(val).trim();
-    if(txt.includes("€")){
-      if(txt.length > kandidat.length){
-        kandidat = txt;
-      }
+    if (!txt) continue;
+    // Wir wollen hier keine Beschreibung oder Bild-URL als Preis missbrauchen.
+    // Deswegen skippen wir Felder, die wie URLs aussehen oder sehr lang sind.
+    const looksLikeURL = /^https?:\/\//i.test(txt);
+    if (looksLikeURL) continue;
+    if (txt.length > 60) continue; // sehr langer Text => eher Beschreibung
+
+    // Behalte den längsten Kandidaten, z.B. "650€ - 1200€" statt nur "650€"
+    if (txt.length > fallback.length) {
+      fallback = txt;
     }
   }
-  return kandidat;
+
+  return fallback;
 }
 
-/* Euroformat (für Ankauf) */
+/* Ankaufpreis formatieren (€/St.) */
 function euro(v){
   if(v==null||v==="")return"";
   let s=String(v).trim().replace(/[^\d.,-]/g,"");
@@ -289,15 +303,17 @@ function euroProStueck(v){
   return t ? t.replace(/\s*€$/," €")+"/St." : "";
 }
 
-/* Karten */
+/* Wein-Karte bauen */
 function buildWineCard(w){
-  const c=document.createElement("article");c.className="card";
+  const c=document.createElement("article");
+  c.className="card";
 
   const img=document.createElement("img");
   img.src=w.BildAI||w.Bild||"";
   img.alt=w.Name||"Wein";
 
-  const meta=document.createElement("div");meta.className="meta";
+  const meta=document.createElement("div");
+  meta.className="meta";
 
   const name=document.createElement("p");
   name.className="name";
@@ -309,6 +325,7 @@ function buildWineCard(w){
 
   meta.append(name,price);
   c.append(img,meta);
+
   c.onclick=()=>showModal(w);
 
   return c;
@@ -328,7 +345,7 @@ function showModal(w){
     if(modalImg2.complete){
       syncModalHeights();
     }else{
-      modalImg2.onload = ()=>syncModalHeights();
+      modalImg2.onload=()=>syncModalHeights();
     }
   }else{
     modalImg2.removeAttribute("src");
@@ -340,18 +357,18 @@ function showModal(w){
   requestAnimationFrame(syncModalHeights);
 }
 
-/* Klick außerhalb schließt Modal */
+/* Klick außerhalb Modal schließt */
 overlay.onclick=()=>overlay.classList.remove("show");
 
-/* Bild2 nie höher als NUR der Beschreibungs-Block (#modalDesc) */
+/* Bild2-Höhensync */
 function syncModalHeights(){
   if(window.matchMedia("(max-width: 900px)").matches){
-    modalLeft.style.height = "auto";
+    modalLeft.style.height="auto";
     return;
   }
   if(modalLeft.style.display==="none") return;
-  const descH = modalDesc.getBoundingClientRect().height;
-  modalLeft.style.height = Math.max(descH, 80) + "px";
+  const descH=modalDesc.getBoundingClientRect().height;
+  modalLeft.style.height=Math.max(descH,80)+"px";
 }
 
 /* Ankauf-Höhensync */
@@ -369,7 +386,7 @@ function syncAnkaufHeights(){
       gvizJSONP(TAB_ANKAUF)
     ]);
 
-    // Website
+    // WEBSITE-DATEN
     let logo="",bg="",fav="",descLogo="",headerDesc="",ankImgURL="",standort="",descStandort="",p1="",p2="",footerD="",footerL="";
     ws.forEach(r=>{
       const f=(r.Funktion||"").toLowerCase();
@@ -384,19 +401,19 @@ function syncAnkaufHeights(){
       if(f==="footer"){footerD=r.Beschreibung;footerL=r.Link}
     });
 
-    if(logo)logoImg.src=logo;
-    if(bg)document.body.style.backgroundImage=`url('${bg}')`;
-    if(fav)faviconEl.href=fav;
+    if(logo) logoImg.src=logo;
+    if(bg) document.body.style.backgroundImage=`url('${bg}')`;
+    if(fav) faviconEl.href=fav;
     logoDescEl.textContent=descLogo||"";
     if(headerDesc){
       headerTextInner.textContent=headerDesc;
       headerText.hidden=false;
     }
 
-    // Weine rendern
+    // WEINE
     weineGrid.innerHTML="";
     weine.forEach(r=>{
-      const preisText = pickPreisFromRow(r);
+      const preisText = pickPreisSmart(r);
 
       const w={
         ID:r.ID,
@@ -413,27 +430,28 @@ function syncAnkaufHeights(){
       }
     });
 
-    // Ankauf
-    if(ankImgURL)ankaufImg.src=ankImgURL;
+    // ANKAUF
+    if(ankImgURL) ankaufImg.src=ankImgURL;
     ankaufList.innerHTML="";
     ank.forEach(a=>{
-      const li=document.createElement("li");li.className="ankauf-item";
+      const li=document.createElement("li");
+      li.className="ankauf-item";
       li.innerHTML=`<div class="what">${a.Anwendung||""}</div><div class="price">${euroProStueck(a.Preis||"")}</div>`;
       ankaufList.append(li);
     });
 
-    // Standort & Fotos
+    // STANDORT & FOTOS
     if(standort||descStandort||p1||p2){
       standortSection.hidden=false;
       standortDescEl.textContent=descStandort||"";
-      if(standort)standortImg.src=standort;
-      if(p1)photo1Img.src=p1;
-      if(p2)photo2Img.src=p2;
+      if(standort) standortImg.src=standort;
+      if(p1) photo1Img.src=p1;
+      if(p2) photo2Img.src=p2;
     }
 
-    // Footer
+    // FOOTER
     if(footerD||footerL){
-      if(footerD)footerDescEl.textContent=footerD;
+      if(footerD) footerDescEl.textContent=footerD;
       if(footerL){
         footerLinkEl.textContent=footerL;
         footerLinkEl.href=footerL;
