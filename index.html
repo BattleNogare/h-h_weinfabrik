@@ -70,7 +70,6 @@
     .meta{padding:.85rem 1rem 1rem;text-align:center}
     .name{margin:0 0 .35rem;font-weight:700}
 
-    /* Preise (Orbitron), fett & mittig) */
     .price{
       font-family:"Orbitron","Arial Black",sans-serif;
       font-weight:800;
@@ -98,7 +97,6 @@
     .modal-title{margin:.2rem 0 .35rem;font-size:1.45rem;font-weight:800;text-align:center}
     .modal-price{margin:0 0 .8rem;text-align:center}
 
-    /* Bild2 links (20%), Text rechts (80%); Bild nie höher als die Beschreibung */
     .modal-flex{display:flex;gap:.5rem;align-items:flex-start}
     .modal-left{
       flex:0 0 20%;
@@ -161,20 +159,16 @@
       </div>
     </header>
 
-    <!-- Header-Text -->
     <div id="headerText" class="header-text" hidden><div class="inner" id="headerTextInner"></div></div>
 
-    <!-- Ladehinweis -->
     <div id="hint" class="hint">🔄 Lade Daten aus Google Sheets …</div>
 
-    <!-- Weine -->
     <section>
       <div id="weineGrid" class="grid"></div>
     </section>
 
     <hr class="rule" />
 
-    <!-- Ankauf -->
     <section>
       <div class="ankauf-wrap">
         <div class="ankauf-list" id="ankaufListBlock">
@@ -185,7 +179,6 @@
       </div>
     </section>
 
-    <!-- Standort -->
     <section class="section" id="standortSection" hidden>
       <h2>Standort</h2>
       <p class="desc" id="standortDesc"></p>
@@ -196,14 +189,12 @@
       </div>
     </section>
 
-    <!-- Footer -->
     <footer id="siteFooter" class="footer" hidden>
       <div id="footerDesc"></div>
       <div><a id="footerLink" href="#" target="_blank" rel="noopener"></a></div>
     </footer>
   </div>
 
-  <!-- Modal -->
   <div id="overlay" class="overlay">
     <div class="modal">
       <div class="modal-media"><img id="modalImg" alt=""></div>
@@ -211,7 +202,6 @@
         <h3 id="modalTitle" class="modal-title"></h3>
         <div id="modalPrice" class="modal-price price"></div>
 
-        <!-- Bild2 links (20%), Text rechts (80%) -->
         <div class="modal-flex" id="modalFlex">
           <div class="modal-left" id="modalLeft">
             <img id="modalImg2" alt="Weinbild 2">
@@ -254,12 +244,29 @@ function gvizJSONP(sheet){
       cleanup();
       try{
         const c=p.table.cols.map(c=>(c.label||c.id||"").trim());
-        const r=p.table.rows.map(r=>{const o={};(r.c||[]).forEach((x,i)=>o[c[i]||"c"+i]=x?x.v:"");return o;});
+        const r=p.table.rows.map(r=>{
+          const o={};
+          (r.c||[]).forEach((x,i)=>o[c[i]||"c"+i]=x?x.v:"");
+          return o;
+        });
         res(r);
       }catch(e){rej(e);}
     };
     s.src=u;document.head.appendChild(s);
   });
+}
+
+/* Hilfsfunktion:
+   Finde die Spalte, deren Name 'preis' enthält, egal wie sie genau heißt */
+function extractPreis(rowObj){
+  let preisVal = "";
+  for (const key of Object.keys(rowObj)) {
+    if (key && key.toLowerCase().includes("preis")) {
+      preisVal = rowObj[key];
+      break;
+    }
+  }
+  return (preisVal ?? "").toString().trim();
 }
 
 /* Euroformat (für Ankauf, €/St.) */
@@ -281,12 +288,6 @@ function euroProStueck(v){
   return t ? t.replace(/\s*€$/," €")+"/St." : "";
 }
 
-/* Preisformat für Weine:
-   Zeig GENAU das an, was im Sheet steht. Keine € hinzufügen, nichts ersetzen. */
-function formatWinePrice(raw){
-  return (raw ?? "").toString().trim();
-}
-
 /* Karten */
 function buildWineCard(w){
   const c=document.createElement("article");c.className="card";
@@ -303,7 +304,7 @@ function buildWineCard(w){
 
   const price=document.createElement("div");
   price.className="price";
-  price.textContent=formatWinePrice(w.Preis);
+  price.textContent=w.PreisText; // <- der extrahierte Preistext
 
   meta.append(name,price);
   c.append(img,meta);
@@ -316,10 +317,7 @@ function buildWineCard(w){
 function showModal(w){
   modalImg.src=w.BildAI||w.Bild||"";
   modalTitle.textContent=w.Name||"";
-
-  // Modal-Preis: direkt aus Sheet
-  modalPrice.textContent=formatWinePrice(w.Preis);
-
+  modalPrice.textContent=w.PreisText || ""; // gleicher Text wie in der Karte
   modalDesc.textContent=(w.Beschreibung||"").toString().trim();
 
   if(w.Bild2){
@@ -397,15 +395,18 @@ function syncAnkaufHeights(){
     // Weine
     weineGrid.innerHTML="";
     weine.forEach(r=>{
+      const preisText = extractPreis(r); // <- dynamisch holen
+
       const w={
         ID:r.ID,
         Name:r.Name,
         Beschreibung:r.Beschreibung,
-        Preis:r.Preis,
+        PreisText:preisText,
         BildAI:r.BildAI,
         Bild2:r.Bild2,
         Bild:r.Bild
       };
+
       if(w.Name && (w.BildAI || w.Bild)){
         weineGrid.append(buildWineCard(w));
       }
@@ -446,7 +447,6 @@ function syncAnkaufHeights(){
     err.textContent="❌ Fehler beim Laden: "+e;
     document.querySelector(".page").prepend(err);
   }finally{
-    // Ladehinweis weg + Höhensyncs
     if(hintEl && hintEl.parentNode) hintEl.parentNode.removeChild(hintEl);
     syncAnkaufHeights();
     window.addEventListener("resize", ()=>{
