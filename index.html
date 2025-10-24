@@ -5,7 +5,6 @@
   <title>H&H Weinfabrik</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link id="dynFavicon" rel="icon" href="">
-  <!-- Orbitron als frei nutzbarer Ersatzstil (Antelope-H-Look) -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&display=swap" rel="stylesheet">
   <style>
     :root{
@@ -56,7 +55,6 @@
 
     hr.rule{height:1px;border:0;margin:1.4rem 0;background:linear-gradient(90deg,transparent,var(--line),transparent)}
 
-    /* ===== Weine ===== */
     .grid{display:grid;gap:1rem;grid-template-columns:repeat(3,1fr)}
     @media (max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}}
     @media (max-width:620px){.grid{grid-template-columns:1fr}}
@@ -80,7 +78,6 @@
       word-break:break-word;
     }
 
-    /* ===== Modal ===== */
     .overlay{
       position:fixed;inset:0;background:rgba(0,0,0,.6);
       display:none;align-items:center;justify-content:center;padding:1.25rem;z-index:30;
@@ -115,7 +112,6 @@
       .modal-left img{height:auto;max-height:60vh}
     }
 
-    /* ===== Ankauf ===== */
     .ankauf-wrap{display:grid;gap:1rem;align-items:start;grid-template-columns:1fr 1fr;margin:1.4rem 0 .6rem}
     @media (max-width:900px){.ankauf-wrap{grid-template-columns:1fr}}
     .ankauf-list{background:var(--wine-800);border:1px solid var(--line);border-radius:var(--radius);padding:.8rem .9rem 1rem}
@@ -126,7 +122,6 @@
     .ankauf-media{background:transparent;border:none;padding:0;display:flex;justify-content:flex-start;align-items:flex-start;height:100%}
     .ankauf-media img{border:none;background:transparent;max-width:100%;max-height:100%;object-fit:contain;object-position:left top;display:block}
 
-    /* ===== Standort & Fotos ===== */
     .section{background:var(--wine-800);border:1px solid var(--line);border-radius:var(--radius);padding:1rem 1.2rem;margin:1.2rem 0}
     .section .desc{color:var(--muted);margin:0 0 .8rem}
 
@@ -256,22 +251,24 @@ function gvizJSONP(sheet){
   });
 }
 
-/*
-  normalizeKey:
-  - lowercase
-  - entferne geschützte Leerzeichen, normale Leerzeichen, Tabs etc.
-  So matchen wir auch Spalten wie "Preis " (mit non-breaking space)
+/* normalizeKey:
+   - alles lowercase
+   - ersetze unsichtbare/geschützte Leerzeichen
+   - trimmen
 */
 function normalizeKey(k){
   return k
     .toLowerCase()
-    .replace(/[\u00a0\u200b]/g," ") // unsichtbare Spaces raus
-    .replace(/\s+/g," ")            // mehrfach-Spaces glätten
+    .replace(/[\u00a0\u200b\u200c\u200d]/g," ") // NBSP & Zero-width raus
+    .replace(/\s+/g," ")
     .trim();
 }
 
-/* Hol den Preis-Text aus der Weine-Zeile robust */
+/* Versuch 1: Spalte finden, deren Name "preis" enthält (mit Normalisierung)
+   Versuch 2: irgendein Feld, dessen Inhalt nach Preis aussieht (enthält € oder Zahl-Bereich)
+*/
 function extractPreis(rowObj){
+  // Versuch 1
   let preisVal = "";
   for (const key of Object.keys(rowObj)) {
     const norm = normalizeKey(key);
@@ -280,14 +277,32 @@ function extractPreis(rowObj){
       break;
     }
   }
-  // Fallback: direkt rowObj.Preis, falls aus irgendeinem Grund nicht gefunden
+
+  // Fallback 1: Direkt "Preis", falls oben wegen Sonderzeichen nicht gematcht wurde
   if(!preisVal && rowObj.Preis !== undefined){
     preisVal = rowObj.Preis;
   }
+
+  // Versuch 2 (Heuristik): Finde irgendeinen Wert, der wie ein Preistextrange aussieht
+  if(!preisVal){
+    for (const key of Object.keys(rowObj)) {
+      const valRaw = rowObj[key];
+      if(!valRaw) continue;
+      const valTxt = String(valRaw).trim();
+      // hat ein € drin? z.B. "650€ - 1200€"
+      // oder "1200 €"
+      // oder "ab 500€"
+      if (/[0-9]\s*€/.test(valTxt) || /€\s*-/.test(valTxt) || /-\s*[0-9]/.test(valTxt) ) {
+        preisVal = valTxt;
+        break;
+      }
+    }
+  }
+
   return (preisVal ?? "").toString().trim();
 }
 
-/* Euroformat (für Ankauf, €/St.) */
+/* Euroformat (für Ankauf) */
 function euro(v){
   if(v==null||v==="")return"";
   let s=String(v).trim().replace(/[^\d.,-]/g,"");
@@ -324,6 +339,7 @@ function buildWineCard(w){
   price.className="price";
   price.textContent=w.PreisText || "";
   price.setAttribute("data-debug-preis", w.PreisText || "(leer)");
+  price.setAttribute("data-debug-keys", w._debugKeys || "");
 
   meta.append(name,price);
   c.append(img,meta);
@@ -369,7 +385,7 @@ function syncModalHeights(){
   }
   if(modalLeft.style.display==="none") return;
   const descH = modalDesc.getBoundingClientRect().height;
-  modalLeft.style.height = Math.max(descH, 80) + "px"; // Mindesthöhe 80px
+  modalLeft.style.height = Math.max(descH, 80) + "px";
 }
 
 /* Ankauf-Höhensync */
@@ -389,7 +405,7 @@ function syncAnkaufHeights(){
 
     console.log("Weine-Rohdaten aus Sheet:", weine);
 
-    // Website
+    // Website Daten
     let logo="",bg="",fav="",descLogo="",headerDesc="",ankImgURL="",standort="",descStandort="",p1="",p2="",footerD="",footerL="";
     ws.forEach(r=>{
       const f=(r.Funktion||"").toLowerCase();
@@ -416,8 +432,11 @@ function syncAnkaufHeights(){
     // Weine rendern
     weineGrid.innerHTML="";
     weine.forEach(r=>{
+      // Alle Keys dieser Zeile sammeln (für Debug & für Anzeige)
+      const rowKeys = Object.keys(r).join(", ");
       const preisText = extractPreis(r);
-      console.log("Eintrag:", r, " → extrahierter Preis:", preisText);
+
+      console.log("Wein-Zeile:", r, "Keys:", rowKeys, "→ Preis ermittelt:", preisText);
 
       const w={
         ID:r.ID,
@@ -426,7 +445,8 @@ function syncAnkaufHeights(){
         PreisText:preisText,
         BildAI:r.BildAI,
         Bild2:r.Bild2,
-        Bild:r.Bild
+        Bild:r.Bild,
+        _debugKeys: rowKeys
       };
 
       if(w.Name && (w.BildAI || w.Bild)){
