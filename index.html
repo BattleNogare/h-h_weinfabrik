@@ -256,15 +256,33 @@ function gvizJSONP(sheet){
   });
 }
 
-/* Hilfsfunktion:
-   Finde die Spalte, deren Name 'preis' enthält, egal wie sie genau heißt */
+/*
+  normalizeKey:
+  - lowercase
+  - entferne geschützte Leerzeichen, normale Leerzeichen, Tabs etc.
+  So matchen wir auch Spalten wie "Preis " (mit non-breaking space)
+*/
+function normalizeKey(k){
+  return k
+    .toLowerCase()
+    .replace(/[\u00a0\u200b]/g," ") // unsichtbare Spaces raus
+    .replace(/\s+/g," ")            // mehrfach-Spaces glätten
+    .trim();
+}
+
+/* Hol den Preis-Text aus der Weine-Zeile robust */
 function extractPreis(rowObj){
   let preisVal = "";
   for (const key of Object.keys(rowObj)) {
-    if (key && key.toLowerCase().includes("preis")) {
+    const norm = normalizeKey(key);
+    if (norm.includes("preis")) {
       preisVal = rowObj[key];
       break;
     }
+  }
+  // Fallback: direkt rowObj.Preis, falls aus irgendeinem Grund nicht gefunden
+  if(!preisVal && rowObj.Preis !== undefined){
+    preisVal = rowObj.Preis;
   }
   return (preisVal ?? "").toString().trim();
 }
@@ -304,7 +322,8 @@ function buildWineCard(w){
 
   const price=document.createElement("div");
   price.className="price";
-  price.textContent=w.PreisText; // <- der extrahierte Preistext
+  price.textContent=w.PreisText || "";
+  price.setAttribute("data-debug-preis", w.PreisText || "(leer)");
 
   meta.append(name,price);
   c.append(img,meta);
@@ -317,7 +336,7 @@ function buildWineCard(w){
 function showModal(w){
   modalImg.src=w.BildAI||w.Bild||"";
   modalTitle.textContent=w.Name||"";
-  modalPrice.textContent=w.PreisText || ""; // gleicher Text wie in der Karte
+  modalPrice.textContent=w.PreisText || "";
   modalDesc.textContent=(w.Beschreibung||"").toString().trim();
 
   if(w.Bild2){
@@ -368,6 +387,8 @@ function syncAnkaufHeights(){
       gvizJSONP(TAB_ANKAUF)
     ]);
 
+    console.log("Weine-Rohdaten aus Sheet:", weine);
+
     // Website
     let logo="",bg="",fav="",descLogo="",headerDesc="",ankImgURL="",standort="",descStandort="",p1="",p2="",footerD="",footerL="";
     ws.forEach(r=>{
@@ -392,10 +413,11 @@ function syncAnkaufHeights(){
       headerText.hidden=false;
     }
 
-    // Weine
+    // Weine rendern
     weineGrid.innerHTML="";
     weine.forEach(r=>{
-      const preisText = extractPreis(r); // <- dynamisch holen
+      const preisText = extractPreis(r);
+      console.log("Eintrag:", r, " → extrahierter Preis:", preisText);
 
       const w={
         ID:r.ID,
