@@ -251,55 +251,23 @@ function gvizJSONP(sheet){
   });
 }
 
-/* normalizeKey:
-   - alles lowercase
-   - ersetze unsichtbare/geschützte Leerzeichen
-   - trimmen
+/* Preis aus einer Wein-Zeile extrahieren:
+   - nimm ALLE Werte der Zeile, die ein "€" enthalten
+   - davon den längsten String
 */
-function normalizeKey(k){
-  return k
-    .toLowerCase()
-    .replace(/[\u00a0\u200b\u200c\u200d]/g," ") // NBSP & Zero-width raus
-    .replace(/\s+/g," ")
-    .trim();
-}
-
-/* Versuch 1: Spalte finden, deren Name "preis" enthält (mit Normalisierung)
-   Versuch 2: irgendein Feld, dessen Inhalt nach Preis aussieht (enthält € oder Zahl-Bereich)
-*/
-function extractPreis(rowObj){
-  // Versuch 1
-  let preisVal = "";
+function pickPreisFromRow(rowObj){
+  let kandidat = "";
   for (const key of Object.keys(rowObj)) {
-    const norm = normalizeKey(key);
-    if (norm.includes("preis")) {
-      preisVal = rowObj[key];
-      break;
-    }
-  }
-
-  // Fallback 1: Direkt "Preis", falls oben wegen Sonderzeichen nicht gematcht wurde
-  if(!preisVal && rowObj.Preis !== undefined){
-    preisVal = rowObj.Preis;
-  }
-
-  // Versuch 2 (Heuristik): Finde irgendeinen Wert, der wie ein Preistextrange aussieht
-  if(!preisVal){
-    for (const key of Object.keys(rowObj)) {
-      const valRaw = rowObj[key];
-      if(!valRaw) continue;
-      const valTxt = String(valRaw).trim();
-      // hat ein € drin? z.B. "650€ - 1200€"
-      // oder "1200 €"
-      // oder "ab 500€"
-      if (/[0-9]\s*€/.test(valTxt) || /€\s*-/.test(valTxt) || /-\s*[0-9]/.test(valTxt) ) {
-        preisVal = valTxt;
-        break;
+    const val = rowObj[key];
+    if(!val) continue;
+    const txt = String(val).trim();
+    if(txt.includes("€")){
+      if(txt.length > kandidat.length){
+        kandidat = txt;
       }
     }
   }
-
-  return (preisVal ?? "").toString().trim();
+  return kandidat;
 }
 
 /* Euroformat (für Ankauf) */
@@ -338,8 +306,6 @@ function buildWineCard(w){
   const price=document.createElement("div");
   price.className="price";
   price.textContent=w.PreisText || "";
-  price.setAttribute("data-debug-preis", w.PreisText || "(leer)");
-  price.setAttribute("data-debug-keys", w._debugKeys || "");
 
   meta.append(name,price);
   c.append(img,meta);
@@ -403,9 +369,7 @@ function syncAnkaufHeights(){
       gvizJSONP(TAB_ANKAUF)
     ]);
 
-    console.log("Weine-Rohdaten aus Sheet:", weine);
-
-    // Website Daten
+    // Website
     let logo="",bg="",fav="",descLogo="",headerDesc="",ankImgURL="",standort="",descStandort="",p1="",p2="",footerD="",footerL="";
     ws.forEach(r=>{
       const f=(r.Funktion||"").toLowerCase();
@@ -432,11 +396,7 @@ function syncAnkaufHeights(){
     // Weine rendern
     weineGrid.innerHTML="";
     weine.forEach(r=>{
-      // Alle Keys dieser Zeile sammeln (für Debug & für Anzeige)
-      const rowKeys = Object.keys(r).join(", ");
-      const preisText = extractPreis(r);
-
-      console.log("Wein-Zeile:", r, "Keys:", rowKeys, "→ Preis ermittelt:", preisText);
+      const preisText = pickPreisFromRow(r);
 
       const w={
         ID:r.ID,
@@ -445,8 +405,7 @@ function syncAnkaufHeights(){
         PreisText:preisText,
         BildAI:r.BildAI,
         Bild2:r.Bild2,
-        Bild:r.Bild,
-        _debugKeys: rowKeys
+        Bild:r.Bild
       };
 
       if(w.Name && (w.BildAI || w.Bild)){
