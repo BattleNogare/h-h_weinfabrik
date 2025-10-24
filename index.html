@@ -254,23 +254,40 @@ function gvizJSONP(sheet){
   });
 }
 
-/* Hilfsfunktion: sieht ein String aus wie ein Preis? */
+/* Hilfsfunktion: sieht ein String nach einem Preis/Range aus? */
 function looksLikePrice(txt){
   const t = txt.trim();
   if (!t) return false;
+
+  // 1. Hat Euro drin -> safe
   if (t.includes("€")) return true;
-  // Beispiele erlauben:
-  // "650"
-  // "650,-"
-  // "1.200"
-  // "650 - 1200"
-  // "ab 900"
-  return /^(ab\s*)?\d[\d\s\.,-]*(\d)?(\s*-\s*\d[\d\s\.,-]*)?$/i.test(t);
+
+  // 2. Range: "650 - 1200" oder "650-1200"
+  if (/^\d[\d\.\s]*-\s*\d/.test(t)) return true;
+
+  // 3. "ab 900"
+  if (/^ab\s*\d/i.test(t)) return true;
+
+  // 4. "650,-" oder "1.200,-"
+  if (/^\d[\d\.\s]*,-$/.test(t)) return true;
+
+  // 5. Nur Zahl (oder Zahl mit . oder , als Tausender), aber NICHT winzig:
+  //    Also "650", "1.200", "12.000"
+  //    aber KEIN "1", "2", "3" (das sind IDs)
+  if (/^\d[\d\.\s]*$/.test(t)) {
+    // nimm die Zahl ohne Punkte/Spaces
+    const numeric = parseInt(t.replace(/\D/g,""),10);
+    if (!isNaN(numeric) && numeric >= 10) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
-/* Preis auswählen, ohne dass der Weinname reingezogen wird */
+/* Preis auswählen – ID ignorieren */
 function pickPreisSmart(rowObj){
-  // 1. Direkter Wert aus der Spalte "Preis"
+  // 1. direkter Wert aus "Preis"
   if (rowObj.Preis !== undefined) {
     const direct = String(rowObj.Preis).trim();
     if (direct !== "") {
@@ -278,8 +295,11 @@ function pickPreisSmart(rowObj){
     }
   }
 
-  // 2. Ansonsten: nimm das erste Feld, das wie ein Preis aussieht
+  // 2. alle anderen Felder prüfen, aber:
+  //    - Key "ID" komplett überspringen
+  //    - nur Werte nehmen, die wie ein Preis aussehen
   for (const key of Object.keys(rowObj)) {
+    if (key.toLowerCase() === "id") continue; // ID nie als Preis
     const val = rowObj[key];
     if (val === undefined || val === null) continue;
     const txt = String(val).trim();
@@ -291,7 +311,7 @@ function pickPreisSmart(rowObj){
     }
   }
 
-  // 3. Nichts Passendes gefunden
+  // 3. nix gefunden
   return "";
 }
 
