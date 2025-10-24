@@ -78,6 +78,7 @@
       color:var(--price-wine);
       letter-spacing:1px;
       font-size:1.8rem;
+      word-break:break-word;
     }
 
     /* ===== Modal ===== */
@@ -244,35 +245,81 @@ const overlay=document.getElementById("overlay"),modalImg=document.getElementByI
 const faviconEl=document.getElementById("dynFavicon");
 
 /* Google Sheets GViz Loader */
-function gvizJSONP(sheet){return new Promise((res,rej)=>{const cb="cb_"+Math.random().toString(36).slice(2);
-  const u=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json,responseHandler:${cb}&headers=1&sheet=${sheet}`;
-  const s=document.createElement("script");let to=setTimeout(()=>{rej("Timeout "+sheet);cleanup();},15000);
-  function cleanup(){clearTimeout(to);try{delete window[cb];}catch{}s.remove();}
-  window[cb]=p=>{cleanup();try{const c=p.table.cols.map(c=>(c.label||c.id||"").trim());
-    const r=p.table.rows.map(r=>{const o={};(r.c||[]).forEach((x,i)=>o[c[i]||"c"+i]=x?x.v:"");return o;});res(r);}catch(e){rej(e);}};
-  s.src=u;document.head.appendChild(s);
-});}
+function gvizJSONP(sheet){
+  return new Promise((res,rej)=>{
+    const cb="cb_"+Math.random().toString(36).slice(2);
+    const u=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json,responseHandler:${cb}&headers=1&sheet=${sheet}`;
+    const s=document.createElement("script");
+    let to=setTimeout(()=>{rej("Timeout "+sheet);cleanup();},15000);
+    function cleanup(){clearTimeout(to);try{delete window[cb];}catch{}s.remove();}
+    window[cb]=p=>{
+      cleanup();
+      try{
+        const c=p.table.cols.map(c=>(c.label||c.id||"").trim());
+        const r=p.table.rows.map(r=>{const o={};(r.c||[]).forEach((x,i)=>o[c[i]||"c"+i]=x?x.v:"");return o;});
+        res(r);
+      }catch(e){rej(e);}
+    };
+    s.src=u;document.head.appendChild(s);
+  });
+}
 
-/* Euroformat */
+/* Euroformat (für Ankauf, €/St.) */
 function euro(v){
   if(v==null||v==="")return"";
   let s=String(v).trim().replace(/[^\d.,-]/g,"");
   if(!s)return"";
   const d=s.lastIndexOf("."),c=s.lastIndexOf(",");const comma=c>d;
-  if(comma){s=s.replace(/\./g,"").replace(",",".");}else{s=s.replace(/,/g,"");}
-  const n=Number(s);return isFinite(n)?n.toLocaleString("de-DE")+" €":String(v);
+  if(comma){
+    s=s.replace(/\./g,"").replace(",",".");
+  }else{
+    s=s.replace(/,/g,"");
+  }
+  const n=Number(s);
+  return isFinite(n)?n.toLocaleString("de-DE")+" €":String(v);
 }
-function euroProStueck(v){const t=euro(v);return t? t.replace(/\s*€$/," €")+"/St.":"";}
+function euroProStueck(v){
+  const t=euro(v);
+  return t ? t.replace(/\s*€$/," €")+"/St." : "";
+}
+
+/* NEU: Preisformat für Weine */
+function formatWinePrice(raw){
+  // leer?
+  if(raw == null || String(raw).trim() === ""){
+    return "Preis auf Anfrage";
+  }
+  const txt = String(raw).trim();
+  // wenn schon € drin ist, einfach zurückgeben
+  if (/[€]/.test(txt)) {
+    return txt;
+  }
+  // ansonsten € anhängen
+  return txt + " €";
+}
 
 /* Karten */
 function buildWineCard(w){
   const c=document.createElement("article");c.className="card";
-  const img=document.createElement("img");img.src=w.BildAI||w.Bild||"";img.alt=w.Name||"Wein";
+
+  const img=document.createElement("img");
+  img.src=w.BildAI||w.Bild||"";
+  img.alt=w.Name||"Wein";
+
   const meta=document.createElement("div");meta.className="meta";
-  const name=document.createElement("p");name.className="name";name.textContent=w.Name||"";
-  const price=document.createElement("div");price.className="price";price.textContent=euro(w.Preis||"");
-  meta.append(name,price);c.append(img,meta);
+
+  const name=document.createElement("p");
+  name.className="name";
+  name.textContent=w.Name||"";
+
+  const price=document.createElement("div");
+  price.className="price";
+  price.textContent=formatWinePrice(w.Preis);
+
+  meta.append(name,price);
+  c.append(img,meta);
   c.onclick=()=>showModal(w);
+
   return c;
 }
 
@@ -280,15 +327,21 @@ function buildWineCard(w){
 function showModal(w){
   modalImg.src=w.BildAI||w.Bild||"";
   modalTitle.textContent=w.Name||"";
-  modalPrice.textContent=euro(w.Preis||"");
+
+  // Modal-Preis mit neuem Format
+  modalPrice.textContent=formatWinePrice(w.Preis);
+
   modalDesc.textContent=(w.Beschreibung||"").toString().trim();
 
   if(w.Bild2){
     modalImg2.src=w.Bild2;
     modalLeft.style.display="flex";
     modalImg2.style.display="block";
-    if(modalImg2.complete){ syncModalHeights(); }
-    else { modalImg2.onload = ()=>syncModalHeights(); }
+    if(modalImg2.complete){
+      syncModalHeights();
+    }else{
+      modalImg2.onload = ()=>syncModalHeights();
+    }
   }else{
     modalImg2.removeAttribute("src");
     modalImg2.style.display="none";
@@ -322,7 +375,11 @@ function syncAnkaufHeights(){
 /* Init */
 (async()=>{
   try{
-    const [ws,weine,ank]=await Promise.all([gvizJSONP(TAB_WEBSITE),gvizJSONP(TAB_WEINE),gvizJSONP(TAB_ANKAUF)]);
+    const [ws,weine,ank]=await Promise.all([
+      gvizJSONP(TAB_WEBSITE),
+      gvizJSONP(TAB_WEINE),
+      gvizJSONP(TAB_ANKAUF)
+    ]);
 
     // Website
     let logo="",bg="",fav="",descLogo="",headerDesc="",ankImgURL="",standort="",descStandort="",p1="",p2="",footerD="",footerL="";
@@ -338,17 +395,31 @@ function syncAnkaufHeights(){
       if(f==="photo2"){p2=r.Link}
       if(f==="footer"){footerD=r.Beschreibung;footerL=r.Link}
     });
+
     if(logo)logoImg.src=logo;
     if(bg)document.body.style.backgroundImage=`url('${bg}')`;
     if(fav)faviconEl.href=fav;
     logoDescEl.textContent=descLogo||"";
-    if(headerDesc){headerTextInner.textContent=headerDesc;headerText.hidden=false;}
+    if(headerDesc){
+      headerTextInner.textContent=headerDesc;
+      headerText.hidden=false;
+    }
 
-    // Weine (BildAI als Hauptbild, Bild2 für Modal links)
+    // Weine
     weineGrid.innerHTML="";
     weine.forEach(r=>{
-      const w={ID:r.ID,Name:r.Name,Beschreibung:r.Beschreibung,Preis:r.Preis,BildAI:r.BildAI,Bild2:r.Bild2,Bild:r.Bild};
-      if(w.Name&&(w.BildAI||w.Bild)) weineGrid.append(buildWineCard(w));
+      const w={
+        ID:r.ID,
+        Name:r.Name,
+        Beschreibung:r.Beschreibung,
+        Preis:r.Preis,
+        BildAI:r.BildAI,
+        Bild2:r.Bild2,
+        Bild:r.Bild
+      };
+      if(w.Name && (w.BildAI || w.Bild)){
+        weineGrid.append(buildWineCard(w));
+      }
     });
 
     // Ankauf
@@ -372,22 +443,29 @@ function syncAnkaufHeights(){
     // Footer
     if(footerD||footerL){
       if(footerD)footerDescEl.textContent=footerD;
-      if(footerL){footerLinkEl.textContent=footerL;footerLinkEl.href=footerL;}
+      if(footerL){
+        footerLinkEl.textContent=footerL;
+        footerLinkEl.href=footerL;
+      }
       siteFooter.hidden=false;
     }
 
   }catch(e){
     console.error(e);
-    const err=document.createElement("div");err.className="hint";err.textContent="❌ Fehler beim Laden: "+e;
+    const err=document.createElement("div");
+    err.className="hint";
+    err.textContent="❌ Fehler beim Laden: "+e;
     document.querySelector(".page").prepend(err);
   }finally{
     // Ladehinweis immer entfernen + Höhensyncs
     if(hintEl && hintEl.parentNode) hintEl.parentNode.removeChild(hintEl);
     syncAnkaufHeights();
-    window.addEventListener("resize",()=>{ syncAnkaufHeights(); syncModalHeights(); });
+    window.addEventListener("resize", ()=>{
+      syncAnkaufHeights();
+      syncModalHeights();
+    });
   }
 })();
 </script>
 </body>
 </html>
-
