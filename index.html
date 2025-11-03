@@ -252,6 +252,57 @@
       outline:2px solid var(--focus);
       outline-offset:1px;
     }
+
+    /* Mehrere Wein-Positionen */
+    #orderItems{
+      display:flex;
+      flex-direction:column;
+      gap:.5rem;
+    }
+    .order-item-row{
+      display:flex;
+      gap:.4rem;
+      align-items:center;
+      flex-wrap:nowrap;
+    }
+    .order-item-row .order-wine-select{
+      flex:1 1 auto;
+      min-width:0;
+    }
+    .order-item-row .order-qty-input{
+      width:80px;
+      flex:0 0 auto;
+    }
+    .order-item-row .order-remove-btn{
+      flex:0 0 auto;
+      padding:.25rem .5rem;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:var(--wine-700);
+      color:var(--muted);
+      font-size:.75rem;
+      cursor:pointer;
+    }
+    .order-item-row .order-remove-btn:hover{
+      background:#3a1520;
+      color:var(--ink);
+    }
+    .order-add-btn{
+      margin-top:.35rem;
+      align-self:flex-start;
+      padding:.3rem .9rem;
+      border-radius:999px;
+      border:1px dashed var(--line);
+      background:transparent;
+      color:var(--muted);
+      font-size:.85rem;
+      cursor:pointer;
+    }
+    .order-add-btn:hover{
+      background:var(--wine-700);
+      color:var(--ink);
+    }
+
     .order-actions{
       display:flex;
       justify-content:space-between;
@@ -394,15 +445,11 @@
             <label for="orderContact">Kontaktdaten (E-Mail, Telefon o.ä.)</label>
             <input id="orderContact" name="contact" class="order-input" required />
           </div>
+
           <div class="order-row">
-            <label for="orderWine">Wein-Auswahl</label>
-            <select id="orderWine" name="wine" class="order-select" required>
-              <option value="">Bitte Wein auswählen …</option>
-            </select>
-          </div>
-          <div class="order-row">
-            <label for="orderQty">Anzahl</label>
-            <input id="orderQty" name="qty" type="number" min="1" value="1" class="order-input" required />
+            <label>Weine &amp; Mengen</label>
+            <div id="orderItems"></div>
+            <button type="button" id="addItemBtn" class="order-add-btn">+ weiterer Wein</button>
           </div>
 
           <div class="order-actions">
@@ -441,8 +488,8 @@ const faviconEl=document.getElementById("dynFavicon");
 const openOrderBtn=document.getElementById("openOrderBtn");
 const orderOverlay=document.getElementById("orderOverlay");
 const orderForm=document.getElementById("orderForm");
-const orderWineSelect=document.getElementById("orderWine");
-const orderQtyInput=document.getElementById("orderQty");
+const orderItemsContainer=document.getElementById("orderItems");
+const addItemBtn=document.getElementById("addItemBtn");
 const orderTotalEl=document.getElementById("orderTotal");
 const orderStatusEl=document.getElementById("orderStatus");
 
@@ -489,7 +536,7 @@ function getPreisText(row){
   return p;
 }
 
-/* Karten */
+/* Wein-Karte */
 function buildWineCard(w){
   const c=document.createElement("article");c.className="card";
   const img=document.createElement("img");img.src=w.BildAI||w.Bild||"";img.alt=w.Name||"Wein";
@@ -556,22 +603,77 @@ function parseUnitPrice(text){
   return isFinite(n) ? n : NaN;
 }
 
-function updateOrderTotal(){
-  const idx = orderWineSelect.value;
-  const qty = parseInt(orderQtyInput.value,10) || 0;
+/* Order-Item-Zeile erzeugen */
+function createOrderItemRow(){
+  const row=document.createElement("div");
+  row.className="order-item-row";
 
-  if(!idx || !weinDaten[idx] || qty<=0){
-    orderTotalEl.textContent="–";
-    return;
-  }
-  const w = weinDaten[idx];
-  const unit = parseUnitPrice(w.Preis);
-  if(isNaN(unit)){
-    // Fallback: zeige einfach den Preistext
-    orderTotalEl.textContent = w.Preis ? w.Preis + " × " + qty : "–";
+  const select=document.createElement("select");
+  select.className="order-select order-wine-select";
+  const qty=document.createElement("input");
+  qty.type="number";
+  qty.min="1";
+  qty.value="1";
+  qty.className="order-input order-qty-input";
+
+  const removeBtn=document.createElement("button");
+  removeBtn.type="button";
+  removeBtn.className="order-remove-btn";
+  removeBtn.textContent="–";
+
+  // Optionen füllen
+  const placeholder=document.createElement("option");
+  placeholder.value="";
+  placeholder.textContent="Wein auswählen …";
+  select.appendChild(placeholder);
+  weinDaten.forEach((w,idx)=>{
+    const opt=document.createElement("option");
+    opt.value=String(idx);
+    opt.textContent=w.Name || ("Wein " + (idx+1));
+    select.appendChild(opt);
+  });
+
+  // Events
+  select.addEventListener("change",updateOrderTotal);
+  qty.addEventListener("input",updateOrderTotal);
+  removeBtn.addEventListener("click",()=>{
+    if(orderItemsContainer.children.length>1){
+      row.remove();
+      updateOrderTotal();
+    }
+  });
+
+  row.appendChild(select);
+  row.appendChild(qty);
+  row.appendChild(removeBtn);
+  return row;
+}
+
+/* Gesamtpreis über alle Positionen berechnen */
+function updateOrderTotal(){
+  const rows=orderItemsContainer.querySelectorAll(".order-item-row");
+  let totalNumeric=0;
+  let hasNumeric=false;
+
+  rows.forEach(row=>{
+    const select=row.querySelector(".order-wine-select");
+    const qtyInput=row.querySelector(".order-qty-input");
+    if(!select || !qtyInput) return;
+    const idx=select.value;
+    const qty=parseInt(qtyInput.value,10)||0;
+    if(!idx || !weinDaten[idx] || qty<=0) return;
+    const w=weinDaten[idx];
+    const unit=parseUnitPrice(w.Preis);
+    if(!isNaN(unit)){
+      hasNumeric=true;
+      totalNumeric+=unit*qty;
+    }
+  });
+
+  if(hasNumeric){
+    orderTotalEl.textContent=totalNumeric.toLocaleString("de-DE")+" €";
   }else{
-    const total = unit * qty;
-    orderTotalEl.textContent = total.toLocaleString("de-DE") + " €";
+    orderTotalEl.textContent="–";
   }
 }
 
@@ -587,9 +689,11 @@ orderOverlay.addEventListener("click",e=>{
   if(e.target===orderOverlay) orderOverlay.classList.remove("show");
 });
 
-/* Total neu berechnen bei Änderungen */
-orderWineSelect.addEventListener("change",updateOrderTotal);
-orderQtyInput.addEventListener("input",updateOrderTotal);
+/* weitere Wein-Position hinzufügen */
+addItemBtn.addEventListener("click",()=>{
+  const row=createOrderItemRow();
+  orderItemsContainer.appendChild(row);
+});
 
 /* Bestellung absenden -> an Discord-Webhook */
 orderForm.addEventListener("submit",async e=>{
@@ -599,41 +703,86 @@ orderForm.addEventListener("submit",async e=>{
 
   const name = document.getElementById("orderName").value.trim();
   const contact = document.getElementById("orderContact").value.trim();
-  const idx = orderWineSelect.value;
-  const qty = parseInt(orderQtyInput.value,10) || 0;
 
-  if(!name || !contact || !idx || !weinDaten[idx] || qty<=0){
-    orderStatusEl.textContent="Bitte alle Felder korrekt ausfüllen.";
+  const rows=orderItemsContainer.querySelectorAll(".order-item-row");
+  const items=[];
+  let totalNumeric=0;
+  let hasNumeric=false;
+
+  rows.forEach(row=>{
+    const select=row.querySelector(".order-wine-select");
+    const qtyInput=row.querySelector(".order-qty-input");
+    if(!select || !qtyInput) return;
+    const idx=select.value;
+    const qty=parseInt(qtyInput.value,10)||0;
+    if(!idx || !weinDaten[idx] || qty<=0) return;
+    const w=weinDaten[idx];
+    const unit=parseUnitPrice(w.Preis);
+    let lineTotalText="";
+    if(!isNaN(unit)){
+      hasNumeric=true;
+      const lineTotal=unit*qty;
+      totalNumeric+=lineTotal;
+      lineTotalText=lineTotal.toLocaleString("de-DE")+" €";
+    }else{
+      lineTotalText=w.Preis ? w.Preis+" × "+qty : String(qty);
+    }
+    items.push({
+      name:w.Name||"Unbekannter Wein",
+      preisText:w.Preis||"k.A.",
+      qty,
+      lineTotalText
+    });
+  });
+
+  if(!name || !contact || items.length===0){
+    orderStatusEl.textContent="Bitte alle Felder ausfüllen und mindestens einen Wein wählen.";
     orderStatusEl.classList.add("err");
     return;
   }
 
-  const w = weinDaten[idx];
-  const unitText = w.Preis || "k.A.";
-  const totalText = orderTotalEl.textContent || "k.A.";
+  const totalDisplay = hasNumeric
+    ? totalNumeric.toLocaleString("de-DE")+" €"
+    : items.map(i=>i.lineTotalText).join(", ");
 
-  const content =
-`Neue Weinbestellung bei H&H Weinfabrik:
-Name: ${name}
-Kontakt: ${contact}
+  const bestellText = items.map(i=>`• ${i.name} – ${i.preisText} × ${i.qty} = ${i.lineTotalText}`).join("\n");
 
-Wein: ${w.Name}
-Preis (Angabe): ${unitText}
-Anzahl: ${qty}
-Gesamtpreis (berechnet/Anzeige): ${totalText}`;
+  // Hübsches Embed für Discord
+  const embed = {
+    title: "Neue Weinbestellung",
+    description: "Eine neue Bestellung ist in der H&H Weinfabrik eingegangen.",
+    color: 0x8b1530,
+    fields: [
+      { name: "Besteller", value: name, inline: false },
+      { name: "Kontakt", value: contact, inline: false },
+      { name: "Bestellte Weine", value: bestellText || "Keine Positionen", inline: false },
+      { name: "Gesamtpreis", value: totalDisplay || "k.A.", inline: false }
+    ],
+    timestamp: new Date().toISOString()
+  };
+
+  const payload = {
+    embeds: [embed]
+  };
 
   try{
     orderStatusEl.textContent="Sende Bestellung …";
     const res = await fetch(DISCORD_WEBHOOK,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({content})
+      body:JSON.stringify(payload)
     });
-    // Wir prüfen die Antwort nicht hart, da CORS/no-cors greifen kann.
+    // Wegen CORS prüfen wir die Response nicht streng.
     orderStatusEl.textContent="Danke für Ihre Bestellung!";
     orderStatusEl.classList.add("ok");
-    // Optional Formular zurücksetzen, Wein/Anzahl beibehalten oder zurücksetzen:
-    // orderForm.reset();
+
+    // Formular zurücksetzen:
+    orderForm.reset();
+    // Wein-Positionen zurück auf genau eine Zeile:
+    orderItemsContainer.innerHTML="";
+    orderItemsContainer.appendChild(createOrderItemRow());
+    updateOrderTotal();
+
     setTimeout(()=>{orderOverlay.classList.remove("show");},1200);
   }catch(err){
     console.error(err);
@@ -670,7 +819,7 @@ Gesamtpreis (berechnet/Anzeige): ${totalText}`;
     // Weine (BildAI als Hauptbild, Bild2 für Modal links)
     weineGrid.innerHTML="";
     weinDaten=[];
-    weine.forEach((r,idx)=>{
+    weine.forEach((r)=>{
       const preisText = getPreisText(r);
       const w={
         ID:r.ID,
@@ -688,14 +837,10 @@ Gesamtpreis (berechnet/Anzeige): ${totalText}`;
       }
     });
 
-    // Bestell-Select füllen
-    orderWineSelect.innerHTML='<option value="">Bitte Wein auswählen …</option>';
-    weinDaten.forEach((w,idx)=>{
-      const opt=document.createElement("option");
-      opt.value=String(idx);
-      opt.textContent=w.Name || ("Wein " + (idx+1));
-      orderWineSelect.appendChild(opt);
-    });
+    // Anfangs eine Bestell-Zeile
+    orderItemsContainer.innerHTML="";
+    orderItemsContainer.appendChild(createOrderItemRow());
+    updateOrderTotal();
 
     // Ankauf
     if(ankImgURL)ankaufImg.src=ankImgURL;
