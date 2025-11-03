@@ -139,7 +139,10 @@
       border-radius:12px;background:var(--wine-700)
     }
     .ankauf-item .what{font-weight:650}
-    .ankauf-item .price{min-width:120px}
+    .ankauf-item .price{
+      min-width:120px;
+      white-space:nowrap;   /* <== NEU: verhindert Zeilenumbruch */
+    }
     .ankauf-media{
       background:transparent;border:none;padding:0;
       display:flex;justify-content:flex-start;align-items:flex-start;
@@ -843,7 +846,7 @@ orderForm.addEventListener("submit",async e=>{
     updateOrderTotal();
 
     // Ankauf
-    if(ankImgURL)ankaufImg.src=ankImgURL;
+    if(ankImgURL)ankaufImg.src=ankaufImgURL;
     ankaufList.innerHTML="";
     ank.forEach(a=>{
       const li=document.createElement("li");li.className="ankauf-item";
