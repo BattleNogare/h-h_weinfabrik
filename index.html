@@ -70,7 +70,7 @@
     .meta{padding:.85rem 1rem 1rem;text-align:center}
     .name{margin:0 0 .35rem;font-weight:700}
 
-    /* Preise (Orbitron), fett & mittig */
+    /* Preise (Orbitron), fett & mittig – Text wie im Sheet */
     .price{
       font-family:"Orbitron","Arial Black",sans-serif;
       font-weight:800;
@@ -78,9 +78,10 @@
       color:var(--price-wine);
       letter-spacing:1px;
       font-size:1.8rem;
+      word-break:break-word;
     }
 
-    /* ===== Modal ===== */
+    /* ===== Modal (Wein-Details) ===== */
     .overlay{
       position:fixed;inset:0;background:rgba(0,0,0,.6);
       display:none;align-items:center;justify-content:center;padding:1.25rem;z-index:30;
@@ -116,22 +117,85 @@
       .modal-left img{height:auto;max-height:60vh}
     }
 
-    /* ===== Ankauf ===== */
-    .ankauf-wrap{display:grid;gap:1rem;align-items:start;grid-template-columns:1fr 1fr;margin:1.4rem 0 .6rem}
-    @media (max-width:900px){.ankauf-wrap{grid-template-columns:1fr}}
-    .ankauf-list{background:var(--wine-800);border:1px solid var(--line);border-radius:var(--radius);padding:.8rem .9rem 1rem}
+    /* ===== Ankauf + Bestellung ===== */
+    .ankauf-wrap{
+      display:grid;
+      gap:1rem;
+      align-items:start;
+      grid-template-columns:1.3fr 1fr 1fr;  /* Liste | Bild | Bestellung */
+      margin:1.4rem 0 .6rem
+    }
+    @media (max-width:900px){
+      .ankauf-wrap{grid-template-columns:1fr}
+    }
+    .ankauf-list{
+      background:var(--wine-800);border:1px solid var(--line);
+      border-radius:var(--radius);padding:.8rem .9rem 1rem
+    }
     .ankauf-list h2{margin:.2rem 0 .6rem;font-size:1.15rem}
-    .ankauf-item{display:flex;justify-content:space-between;align-items:center;padding:.65rem .7rem;border:1px dashed var(--line);border-radius:12px;background:var(--wine-700)}
+    .ankauf-item{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:.65rem .7rem;border:1px dashed var(--line);
+      border-radius:12px;background:var(--wine-700)
+    }
     .ankauf-item .what{font-weight:650}
     .ankauf-item .price{min-width:120px}
-    .ankauf-media{background:transparent;border:none;padding:0;display:flex;justify-content:flex-start;align-items:flex-start;height:100%}
-    .ankauf-media img{border:none;background:transparent;max-width:100%;max-height:100%;object-fit:contain;object-position:left top;display:block}
+    .ankauf-media{
+      background:transparent;border:none;padding:0;
+      display:flex;justify-content:flex-start;align-items:flex-start;
+      height:100%
+    }
+    .ankauf-media img{
+      border:none;background:transparent;max-width:100%;max-height:100%;
+      object-fit:contain;object-position:left top;display:block
+    }
+
+    /* Bestellung-Box */
+    .order-box{
+      background:var(--wine-800);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:.9rem 1rem 1rem;
+      display:flex;
+      flex-direction:column;
+      gap:.6rem;
+    }
+    .order-box h2{
+      margin:.2rem 0 .3rem;
+      font-size:1.15rem;
+    }
+    .order-box p{
+      margin:0;
+      color:var(--muted);
+      font-size:.9rem;
+    }
+    .order-btn{
+      margin-top:.4rem;
+      align-self:flex-start;
+      padding:.5rem 1.2rem;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:var(--wine-700);
+      color:var(--ink);
+      font-weight:600;
+      cursor:pointer;
+      letter-spacing:.03em;
+      transition:transform .15s, box-shadow .15s, background .15s;
+    }
+    .order-btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 8px 18px rgba(0,0,0,.35);
+      background:#3a1520;
+    }
 
     /* ===== Standort & Fotos ===== */
-    .section{background:var(--wine-800);border:1px solid var(--line);border-radius:var(--radius);padding:1rem 1.2rem;margin:1.2rem 0}
+    .section{
+      background:var(--wine-800);border:1px solid var(--line);
+      border-radius:var(--radius);padding:1rem 1.2rem;margin:1.2rem 0
+    }
     .section .desc{color:var(--muted);margin:0 0 .8rem}
 
-    /* Standortbild: volle Breite, vollständige Darstellung (kein Beschnitt) */
+    /* Standortbild */
     #standortImg{
       width:100%;
       height:auto;
@@ -143,13 +207,96 @@
       margin-bottom:1rem;
     }
 
-    /* Photo1 & Photo2: gleich groß, Seitenverhältnis 16:9, Beschnitt erlaubt */
+    /* Photo1 & Photo2 */
     .photo-row{display:grid;gap:.9rem;grid-template-columns:1fr}
     @media (min-width:900px){.photo-row{grid-template-columns:1fr 1fr}}
-    .photo{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
+    .photo{
+      width:100%;aspect-ratio:16/9;object-fit:cover;
+      border-radius:12px;border:1px solid var(--line)
+    }
 
     footer.footer{margin:1.5rem 0 .5rem;color:var(--muted);font-size:.85rem;text-align:center}
     footer.footer a{color:var(--ink);text-decoration:underline}
+
+    /* ===== Bestell-Modal ===== */
+    #orderOverlay .modal{
+      width:min(720px,96vw);
+    }
+    .order-form{
+      padding:1rem 1.15rem 1.3rem;
+    }
+    .order-form h3{
+      margin:.2rem 0 .8rem;
+      text-align:center;
+      font-size:1.4rem;
+    }
+    .order-row{
+      margin-bottom:.75rem;
+      display:flex;
+      flex-direction:column;
+      gap:.25rem;
+    }
+    .order-row label{
+      font-size:.9rem;
+      color:var(--muted);
+    }
+    .order-input, .order-select{
+      padding:.45rem .6rem;
+      border-radius:8px;
+      border:1px solid var(--line);
+      background:var(--wine-800);
+      color:var(--ink);
+      font:inherit;
+    }
+    .order-input:focus, .order-select:focus{
+      outline:2px solid var(--focus);
+      outline-offset:1px;
+    }
+    .order-actions{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:.75rem;
+      margin-top:.9rem;
+      flex-wrap:wrap;
+    }
+    .order-total{
+      font-size:.95rem;
+      color:var(--muted);
+    }
+    .order-total strong{
+      color:var(--ink);
+    }
+    .order-submit{
+      padding:.55rem 1.4rem;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:var(--price-wine);
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      font-size:.85rem;
+      transition:transform .15s, box-shadow .15s, filter .15s;
+    }
+    .order-submit:hover{
+      transform:translateY(-1px);
+      box-shadow:0 10px 22px rgba(0,0,0,.45);
+      filter:brightness(1.05);
+    }
+    .order-status{
+      margin-top:.6rem;
+      font-size:.9rem;
+      color:var(--muted);
+      min-height:1.1em;
+    }
+    .order-status.ok{
+      color:#7dd97d;
+    }
+    .order-status.err{
+      color:#ff9aa2;
+    }
   </style>
 </head>
 <body>
@@ -175,7 +322,7 @@
 
     <hr class="rule" />
 
-    <!-- Ankauf -->
+    <!-- Ankauf + Bestellung -->
     <section>
       <div class="ankauf-wrap">
         <div class="ankauf-list" id="ankaufListBlock">
@@ -183,6 +330,13 @@
           <ul id="ankaufList"></ul>
         </div>
         <div class="ankauf-media"><img id="ankaufImg" alt="Ankauf"></div>
+
+        <!-- Bestellung-Box -->
+        <div class="order-box">
+          <h2>Bestellung</h2>
+          <p>Sie möchten einen unserer Weine bestellen? Öffnen Sie das Bestellformular und senden Sie uns Ihre Anfrage direkt.</p>
+          <button id="openOrderBtn" class="order-btn" type="button">Bestellen</button>
+        </div>
       </div>
     </section>
 
@@ -204,7 +358,7 @@
     </footer>
   </div>
 
-  <!-- Modal -->
+  <!-- Wein-Modal -->
   <div id="overlay" class="overlay">
     <div class="modal">
       <div class="modal-media"><img id="modalImg" alt=""></div>
@@ -226,9 +380,47 @@
     </div>
   </div>
 
+  <!-- Bestell-Modal -->
+  <div id="orderOverlay" class="overlay">
+    <div class="modal">
+      <div class="order-form">
+        <h3>Bestellung aufgeben</h3>
+        <form id="orderForm">
+          <div class="order-row">
+            <label for="orderName">Ihr Name</label>
+            <input id="orderName" name="name" class="order-input" required />
+          </div>
+          <div class="order-row">
+            <label for="orderContact">Kontaktdaten (E-Mail, Telefon o.ä.)</label>
+            <input id="orderContact" name="contact" class="order-input" required />
+          </div>
+          <div class="order-row">
+            <label for="orderWine">Wein-Auswahl</label>
+            <select id="orderWine" name="wine" class="order-select" required>
+              <option value="">Bitte Wein auswählen …</option>
+            </select>
+          </div>
+          <div class="order-row">
+            <label for="orderQty">Anzahl</label>
+            <input id="orderQty" name="qty" type="number" min="1" value="1" class="order-input" required />
+          </div>
+
+          <div class="order-actions">
+            <div class="order-total">
+              Gesamtpreis: <strong id="orderTotal">–</strong>
+            </div>
+            <button type="submit" class="order-submit">Bestellung senden</button>
+          </div>
+          <div id="orderStatus" class="order-status" aria-live="polite"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
 <script>
 const SHEET_ID="18Q64WpaE2NAEmva0Y8dABSamcMfzcbVp2CJ1ToZ9Il8";
 const TAB_WEBSITE="Website",TAB_WEINE="Weine",TAB_ANKAUF="Ankauf";
+const DISCORD_WEBHOOK="https://discord.com/api/webhooks/1409574315598544906/zyhruAAcS2YgKTAWFb4TzR3XnDgzVma3f44Hygdn5tFY7RsXHOMgtTiMzQSZMzb3fX_a";
 
 const logoImg=document.getElementById("logoImg"),logoDescEl=document.getElementById("logoDesc");
 const headerText=document.getElementById("headerText"),headerTextInner=document.getElementById("headerTextInner");
@@ -238,22 +430,47 @@ const ankaufList=document.getElementById("ankaufList"),ankaufImg=document.getEle
 const standortSection=document.getElementById("standortSection"),standortDescEl=document.getElementById("standortDesc"),
       standortImg=document.getElementById("standortImg"),photo1Img=document.getElementById("photo1"),photo2Img=document.getElementById("photo2");
 const siteFooter=document.getElementById("siteFooter"),footerDescEl=document.getElementById("footerDesc"),footerLinkEl=document.getElementById("footerLink");
+
 const overlay=document.getElementById("overlay"),modalImg=document.getElementById("modalImg"),modalTitle=document.getElementById("modalTitle"),
       modalPrice=document.getElementById("modalPrice"),modalDesc=document.getElementById("modalDesc"),modalImg2=document.getElementById("modalImg2"),
       modalLeft=document.getElementById("modalLeft");
+
 const faviconEl=document.getElementById("dynFavicon");
 
-/* Google Sheets GViz Loader */
-function gvizJSONP(sheet){return new Promise((res,rej)=>{const cb="cb_"+Math.random().toString(36).slice(2);
-  const u=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json,responseHandler:${cb}&headers=1&sheet=${sheet}`;
-  const s=document.createElement("script");let to=setTimeout(()=>{rej("Timeout "+sheet);cleanup();},15000);
-  function cleanup(){clearTimeout(to);try{delete window[cb];}catch{}s.remove();}
-  window[cb]=p=>{cleanup();try{const c=p.table.cols.map(c=>(c.label||c.id||"").trim());
-    const r=p.table.rows.map(r=>{const o={};(r.c||[]).forEach((x,i)=>o[c[i]||"c"+i]=x?x.v:"");return o;});res(r);}catch(e){rej(e);}};
-  s.src=u;document.head.appendChild(s);
-});}
+// Bestell-UI
+const openOrderBtn=document.getElementById("openOrderBtn");
+const orderOverlay=document.getElementById("orderOverlay");
+const orderForm=document.getElementById("orderForm");
+const orderWineSelect=document.getElementById("orderWine");
+const orderQtyInput=document.getElementById("orderQty");
+const orderTotalEl=document.getElementById("orderTotal");
+const orderStatusEl=document.getElementById("orderStatus");
 
-/* Euroformat */
+let weinDaten=[];
+
+/* Google Sheets GViz Loader */
+function gvizJSONP(sheet){
+  return new Promise((res,rej)=>{
+    const cb="cb_"+Math.random().toString(36).slice(2);
+    const u=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json,responseHandler:${cb}&headers=1&sheet=${sheet}`;
+    const s=document.createElement("script");
+    let to=setTimeout(()=>{rej("Timeout "+sheet);cleanup();},15000);
+    function cleanup(){clearTimeout(to);try{delete window[cb];}catch{}s.remove();}
+    window[cb]=p=>{
+      cleanup();
+      try{
+        const c=p.table.cols.map(c=>(c.label||c.id||"").trim());
+        const r=p.table.rows.map(r=>{
+          const o={};(r.c||[]).forEach((x,i)=>o[c[i]||"c"+i]=x?x.v:"");return o;
+        });
+        res(r);
+      }catch(e){rej(e);}
+    };
+    s.src=u;document.head.appendChild(s);
+  });
+}
+
+/* Euroformat nur für Ankauf (numerisch) */
 function euro(v){
   if(v==null||v==="")return"";
   let s=String(v).trim().replace(/[^\d.,-]/g,"");
@@ -264,13 +481,21 @@ function euro(v){
 }
 function euroProStueck(v){const t=euro(v);return t? t.replace(/\s*€$/," €")+"/St.":"";}
 
+/* Preistext aus Weine-Zeile: zuerst Preis_Anzeige, sonst Preis */
+function getPreisText(row){
+  const pa = row.Preis_Anzeige !== undefined ? String(row.Preis_Anzeige||"").trim() : "";
+  if(pa) return pa;
+  const p = row.Preis !== undefined ? String(row.Preis||"").trim() : "";
+  return p;
+}
+
 /* Karten */
 function buildWineCard(w){
   const c=document.createElement("article");c.className="card";
   const img=document.createElement("img");img.src=w.BildAI||w.Bild||"";img.alt=w.Name||"Wein";
   const meta=document.createElement("div");meta.className="meta";
   const name=document.createElement("p");name.className="name";name.textContent=w.Name||"";
-  const price=document.createElement("div");price.className="price";price.textContent=euro(w.Preis||"");
+  const price=document.createElement("div");price.className="price";price.textContent=w.Preis||"";
   meta.append(name,price);c.append(img,meta);
   c.onclick=()=>showModal(w);
   return c;
@@ -280,7 +505,7 @@ function buildWineCard(w){
 function showModal(w){
   modalImg.src=w.BildAI||w.Bild||"";
   modalTitle.textContent=w.Name||"";
-  modalPrice.textContent=euro(w.Preis||"");
+  modalPrice.textContent=w.Preis||"";
   modalDesc.textContent=(w.Beschreibung||"").toString().trim();
 
   if(w.Bild2){
@@ -299,8 +524,10 @@ function showModal(w){
   requestAnimationFrame(syncModalHeights);
 }
 
-/* Klick außerhalb schließt Modal */
-overlay.onclick=()=>overlay.classList.remove("show");
+/* Klick außerhalb schließt Wein-Modal */
+overlay.addEventListener("click",e=>{
+  if(e.target===overlay) overlay.classList.remove("show");
+});
 
 /* Bild2 nie höher als NUR der Beschreibungs-Block (#modalDesc) */
 function syncModalHeights(){
@@ -318,6 +545,102 @@ function syncAnkaufHeights(){
   const h=ankaufListBlock.getBoundingClientRect().height;
   ankaufImg.style.maxHeight=h+"px";
 }
+
+/* Preis-Parsing für Gesamtpreis (Versuch: erste Zahl) */
+function parseUnitPrice(text){
+  if(!text) return NaN;
+  const m = String(text).match(/(\d[\d\.]*)/);
+  if(!m) return NaN;
+  const numStr = m[1].replace(/\./g,"");
+  const n = Number(numStr);
+  return isFinite(n) ? n : NaN;
+}
+
+function updateOrderTotal(){
+  const idx = orderWineSelect.value;
+  const qty = parseInt(orderQtyInput.value,10) || 0;
+
+  if(!idx || !weinDaten[idx] || qty<=0){
+    orderTotalEl.textContent="–";
+    return;
+  }
+  const w = weinDaten[idx];
+  const unit = parseUnitPrice(w.Preis);
+  if(isNaN(unit)){
+    // Fallback: zeige einfach den Preistext
+    orderTotalEl.textContent = w.Preis ? w.Preis + " × " + qty : "–";
+  }else{
+    const total = unit * qty;
+    orderTotalEl.textContent = total.toLocaleString("de-DE") + " €";
+  }
+}
+
+/* Bestell-Overlay öffnen/schließen */
+openOrderBtn.addEventListener("click",()=>{
+  orderStatusEl.textContent="";
+  orderStatusEl.className="order-status";
+  orderOverlay.classList.add("show");
+  updateOrderTotal();
+});
+
+orderOverlay.addEventListener("click",e=>{
+  if(e.target===orderOverlay) orderOverlay.classList.remove("show");
+});
+
+/* Total neu berechnen bei Änderungen */
+orderWineSelect.addEventListener("change",updateOrderTotal);
+orderQtyInput.addEventListener("input",updateOrderTotal);
+
+/* Bestellung absenden -> an Discord-Webhook */
+orderForm.addEventListener("submit",async e=>{
+  e.preventDefault();
+  orderStatusEl.textContent="";
+  orderStatusEl.className="order-status";
+
+  const name = document.getElementById("orderName").value.trim();
+  const contact = document.getElementById("orderContact").value.trim();
+  const idx = orderWineSelect.value;
+  const qty = parseInt(orderQtyInput.value,10) || 0;
+
+  if(!name || !contact || !idx || !weinDaten[idx] || qty<=0){
+    orderStatusEl.textContent="Bitte alle Felder korrekt ausfüllen.";
+    orderStatusEl.classList.add("err");
+    return;
+  }
+
+  const w = weinDaten[idx];
+  const unitText = w.Preis || "k.A.";
+  const totalText = orderTotalEl.textContent || "k.A.";
+
+  const content =
+`Neue Weinbestellung bei H&H Weinfabrik:
+Name: ${name}
+Kontakt: ${contact}
+
+Wein: ${w.Name}
+Preis (Angabe): ${unitText}
+Anzahl: ${qty}
+Gesamtpreis (berechnet/Anzeige): ${totalText}`;
+
+  try{
+    orderStatusEl.textContent="Sende Bestellung …";
+    const res = await fetch(DISCORD_WEBHOOK,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({content})
+    });
+    // Wir prüfen die Antwort nicht hart, da CORS/no-cors greifen kann.
+    orderStatusEl.textContent="Danke für Ihre Bestellung!";
+    orderStatusEl.classList.add("ok");
+    // Optional Formular zurücksetzen, Wein/Anzahl beibehalten oder zurücksetzen:
+    // orderForm.reset();
+    setTimeout(()=>{orderOverlay.classList.remove("show");},1200);
+  }catch(err){
+    console.error(err);
+    orderStatusEl.textContent="Fehler beim Senden der Bestellung. Bitte später erneut versuchen.";
+    orderStatusEl.classList.add("err");
+  }
+});
 
 /* Init */
 (async()=>{
@@ -346,9 +669,32 @@ function syncAnkaufHeights(){
 
     // Weine (BildAI als Hauptbild, Bild2 für Modal links)
     weineGrid.innerHTML="";
-    weine.forEach(r=>{
-      const w={ID:r.ID,Name:r.Name,Beschreibung:r.Beschreibung,Preis:r.Preis,BildAI:r.BildAI,Bild2:r.Bild2,Bild:r.Bild};
-      if(w.Name&&(w.BildAI||w.Bild)) weineGrid.append(buildWineCard(w));
+    weinDaten=[];
+    weine.forEach((r,idx)=>{
+      const preisText = getPreisText(r);
+      const w={
+        ID:r.ID,
+        Name:r.Name,
+        Beschreibung:r.Beschreibung,
+        Preis:preisText,
+        BildAI:r.BildAI,
+        Bild2:r.Bild2,
+        Bild:r.Bild
+      };
+      if(w.Name&&(w.BildAI||w.Bild)){
+        const card = buildWineCard(w);
+        weineGrid.append(card);
+        weinDaten.push(w);
+      }
+    });
+
+    // Bestell-Select füllen
+    orderWineSelect.innerHTML='<option value="">Bitte Wein auswählen …</option>';
+    weinDaten.forEach((w,idx)=>{
+      const opt=document.createElement("option");
+      opt.value=String(idx);
+      opt.textContent=w.Name || ("Wein " + (idx+1));
+      orderWineSelect.appendChild(opt);
     });
 
     // Ankauf
@@ -384,7 +730,7 @@ function syncAnkaufHeights(){
     // Ladehinweis immer entfernen + Höhensyncs
     if(hintEl && hintEl.parentNode) hintEl.parentNode.removeChild(hintEl);
     syncAnkaufHeights();
-    window.addEventListener("resize",()=>{ syncAnkaufHeights(); syncModalHeights(); });
+    window.addEventListener("resize",()=>{ syncAnkaufHeights(); syncModalHeights(); updateOrderTotal(); });
   }
 })();
 </script>
