@@ -103,7 +103,7 @@
     .modal-left{
       flex:0 0 20%;
       display:flex;align-items:flex-start;justify-content:flex-start;
-      overflow:hidden; height:auto; padding:0; /* Höhe per JS auf Beschreibungs-Höhe gesetzt */
+      overflow:hidden; height:auto; padding:0;
     }
     .modal-left img{
       width:100%; height:100%; object-fit:contain; display:block;
@@ -141,7 +141,7 @@
     .ankauf-item .what{font-weight:650}
     .ankauf-item .price{
       min-width:120px;
-      white-space:nowrap;   /* <== NEU: verhindert Zeilenumbruch */
+      white-space:nowrap;
     }
     .ankauf-media{
       background:transparent;border:none;padding:0;
@@ -198,7 +198,6 @@
     }
     .section .desc{color:var(--muted);margin:0 0 .8rem}
 
-    /* Standortbild */
     #standortImg{
       width:100%;
       height:auto;
@@ -210,7 +209,6 @@
       margin-bottom:1rem;
     }
 
-    /* Photo1 & Photo2 */
     .photo-row{display:grid;gap:.9rem;grid-template-columns:1fr}
     @media (min-width:900px){.photo-row{grid-template-columns:1fr 1fr}}
     .photo{
@@ -256,7 +254,6 @@
       outline-offset:1px;
     }
 
-    /* Mehrere Wein-Positionen */
     #orderItems{
       display:flex;
       flex-direction:column;
@@ -363,20 +360,16 @@
       </div>
     </header>
 
-    <!-- Header-Text -->
     <div id="headerText" class="header-text" hidden><div class="inner" id="headerTextInner"></div></div>
 
-    <!-- Ladehinweis -->
     <div id="hint" class="hint">🔄 Lade Daten aus Google Sheets …</div>
 
-    <!-- Weine -->
     <section>
       <div id="weineGrid" class="grid"></div>
     </section>
 
     <hr class="rule" />
 
-    <!-- Ankauf + Bestellung -->
     <section>
       <div class="ankauf-wrap">
         <div class="ankauf-list" id="ankaufListBlock">
@@ -385,7 +378,6 @@
         </div>
         <div class="ankauf-media"><img id="ankaufImg" alt="Ankauf"></div>
 
-        <!-- Bestellung-Box -->
         <div class="order-box">
           <h2>Bestellung</h2>
           <p>Sie möchten einen unserer Weine bestellen? Öffnen Sie das Bestellformular und senden Sie uns Ihre Anfrage direkt.</p>
@@ -394,7 +386,6 @@
       </div>
     </section>
 
-    <!-- Standort -->
     <section class="section" id="standortSection" hidden>
       <h2>Standort</h2>
       <p class="desc" id="standortDesc"></p>
@@ -405,22 +396,18 @@
       </div>
     </section>
 
-    <!-- Footer -->
     <footer id="siteFooter" class="footer" hidden>
       <div id="footerDesc"></div>
       <div><a id="footerLink" href="#" target="_blank" rel="noopener"></a></div>
     </footer>
   </div>
 
-  <!-- Wein-Modal -->
   <div id="overlay" class="overlay">
     <div class="modal">
       <div class="modal-media"><img id="modalImg" alt=""></div>
       <div class="modal-body">
         <h3 id="modalTitle" class="modal-title"></h3>
         <div id="modalPrice" class="modal-price price"></div>
-
-        <!-- Bild2 links (20%), Text rechts (80%) -->
         <div class="modal-flex" id="modalFlex">
           <div class="modal-left" id="modalLeft">
             <img id="modalImg2" alt="Weinbild 2">
@@ -429,12 +416,10 @@
             <div id="modalDesc" class="modal-desc"></div>
           </div>
         </div>
-
       </div>
     </div>
   </div>
 
-  <!-- Bestell-Modal -->
   <div id="orderOverlay" class="overlay">
     <div class="modal">
       <div class="order-form">
@@ -498,7 +483,6 @@ const orderStatusEl=document.getElementById("orderStatus");
 
 let weinDaten=[];
 
-/* Google Sheets GViz Loader */
 function gvizJSONP(sheet){
   return new Promise((res,rej)=>{
     const cb="cb_"+Math.random().toString(36).slice(2);
@@ -520,7 +504,6 @@ function gvizJSONP(sheet){
   });
 }
 
-/* Euroformat nur für Ankauf (numerisch) */
 function euro(v){
   if(v==null||v==="")return"";
   let s=String(v).trim().replace(/[^\d.,-]/g,"");
@@ -531,7 +514,6 @@ function euro(v){
 }
 function euroProStueck(v){const t=euro(v);return t? t.replace(/\s*€$/," €")+"/St.":"";}
 
-/* Preistext aus Weine-Zeile: zuerst Preis_Anzeige, sonst Preis */
 function getPreisText(row){
   const pa = row.Preis_Anzeige !== undefined ? String(row.Preis_Anzeige||"").trim() : "";
   if(pa) return pa;
@@ -539,7 +521,6 @@ function getPreisText(row){
   return p;
 }
 
-/* Wein-Karte */
 function buildWineCard(w){
   const c=document.createElement("article");c.className="card";
   const img=document.createElement("img");img.src=w.BildAI||w.Bild||"";img.alt=w.Name||"Wein";
@@ -551,7 +532,6 @@ function buildWineCard(w){
   return c;
 }
 
-/* Modal anzeigen */
 function showModal(w){
   modalImg.src=w.BildAI||w.Bild||"";
   modalTitle.textContent=w.Name||"";
@@ -574,12 +554,10 @@ function showModal(w){
   requestAnimationFrame(syncModalHeights);
 }
 
-/* Klick außerhalb schließt Wein-Modal */
 overlay.addEventListener("click",e=>{
   if(e.target===overlay) overlay.classList.remove("show");
 });
 
-/* Bild2 nie höher als NUR der Beschreibungs-Block (#modalDesc) */
 function syncModalHeights(){
   if(window.matchMedia("(max-width: 900px)").matches){
     modalLeft.style.height = "auto";
@@ -587,16 +565,14 @@ function syncModalHeights(){
   }
   if(modalLeft.style.display==="none") return;
   const descH = modalDesc.getBoundingClientRect().height;
-  modalLeft.style.height = Math.max(descH, 80) + "px"; // Mindesthöhe 80px
+  modalLeft.style.height = Math.max(descH, 80) + "px";
 }
 
-/* Ankauf-Höhensync */
 function syncAnkaufHeights(){
   const h=ankaufListBlock.getBoundingClientRect().height;
   ankaufImg.style.maxHeight=h+"px";
 }
 
-/* Preis-Parsing für Gesamtpreis (Versuch: erste Zahl) */
 function parseUnitPrice(text){
   if(!text) return NaN;
   const m = String(text).match(/(\d[\d\.]*)/);
@@ -606,7 +582,6 @@ function parseUnitPrice(text){
   return isFinite(n) ? n : NaN;
 }
 
-/* Order-Item-Zeile erzeugen */
 function createOrderItemRow(){
   const row=document.createElement("div");
   row.className="order-item-row";
@@ -624,7 +599,6 @@ function createOrderItemRow(){
   removeBtn.className="order-remove-btn";
   removeBtn.textContent="–";
 
-  // Optionen füllen
   const placeholder=document.createElement("option");
   placeholder.value="";
   placeholder.textContent="Wein auswählen …";
@@ -636,7 +610,6 @@ function createOrderItemRow(){
     select.appendChild(opt);
   });
 
-  // Events
   select.addEventListener("change",updateOrderTotal);
   qty.addEventListener("input",updateOrderTotal);
   removeBtn.addEventListener("click",()=>{
@@ -652,7 +625,6 @@ function createOrderItemRow(){
   return row;
 }
 
-/* Gesamtpreis über alle Positionen berechnen */
 function updateOrderTotal(){
   const rows=orderItemsContainer.querySelectorAll(".order-item-row");
   let totalNumeric=0;
@@ -680,7 +652,6 @@ function updateOrderTotal(){
   }
 }
 
-/* Bestell-Overlay öffnen/schließen */
 openOrderBtn.addEventListener("click",()=>{
   orderStatusEl.textContent="";
   orderStatusEl.className="order-status";
@@ -692,13 +663,11 @@ orderOverlay.addEventListener("click",e=>{
   if(e.target===orderOverlay) orderOverlay.classList.remove("show");
 });
 
-/* weitere Wein-Position hinzufügen */
 addItemBtn.addEventListener("click",()=>{
   const row=createOrderItemRow();
   orderItemsContainer.appendChild(row);
 });
 
-/* Bestellung absenden -> an Discord-Webhook */
 orderForm.addEventListener("submit",async e=>{
   e.preventDefault();
   orderStatusEl.textContent="";
@@ -750,7 +719,6 @@ orderForm.addEventListener("submit",async e=>{
 
   const bestellText = items.map(i=>`• ${i.name} – ${i.preisText} × ${i.qty} = ${i.lineTotalText}`).join("\n");
 
-  // Hübsches Embed für Discord
   const embed = {
     title: "Neue Weinbestellung",
     description: "Eine neue Bestellung ist in der H&H Weinfabrik eingegangen.",
@@ -764,24 +732,19 @@ orderForm.addEventListener("submit",async e=>{
     timestamp: new Date().toISOString()
   };
 
-  const payload = {
-    embeds: [embed]
-  };
+  const payload = { embeds: [embed] };
 
   try{
     orderStatusEl.textContent="Sende Bestellung …";
-    const res = await fetch(DISCORD_WEBHOOK,{
+    await fetch(DISCORD_WEBHOOK,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify(payload)
     });
-    // Wegen CORS prüfen wir die Response nicht streng.
     orderStatusEl.textContent="Danke für Ihre Bestellung!";
     orderStatusEl.classList.add("ok");
 
-    // Formular zurücksetzen:
     orderForm.reset();
-    // Wein-Positionen zurück auf genau eine Zeile:
     orderItemsContainer.innerHTML="";
     orderItemsContainer.appendChild(createOrderItemRow());
     updateOrderTotal();
@@ -794,12 +757,10 @@ orderForm.addEventListener("submit",async e=>{
   }
 });
 
-/* Init */
 (async()=>{
   try{
     const [ws,weine,ank]=await Promise.all([gvizJSONP(TAB_WEBSITE),gvizJSONP(TAB_WEINE),gvizJSONP(TAB_ANKAUF)]);
 
-    // Website
     let logo="",bg="",fav="",descLogo="",headerDesc="",ankImgURL="",standort="",descStandort="",p1="",p2="",footerD="",footerL="";
     ws.forEach(r=>{
       const f=(r.Funktion||"").toLowerCase();
@@ -819,10 +780,9 @@ orderForm.addEventListener("submit",async e=>{
     logoDescEl.textContent=descLogo||"";
     if(headerDesc){headerTextInner.textContent=headerDesc;headerText.hidden=false;}
 
-    // Weine (BildAI als Hauptbild, Bild2 für Modal links)
     weineGrid.innerHTML="";
     weinDaten=[];
-    weine.forEach((r)=>{
+    weine.forEach(r=>{
       const preisText = getPreisText(r);
       const w={
         ID:r.ID,
@@ -834,19 +794,17 @@ orderForm.addEventListener("submit",async e=>{
         Bild:r.Bild
       };
       if(w.Name&&(w.BildAI||w.Bild)){
-        const card = buildWineCard(w);
-        weineGrid.append(card);
+        weineGrid.append(buildWineCard(w));
         weinDaten.push(w);
       }
     });
 
-    // Anfangs eine Bestell-Zeile
     orderItemsContainer.innerHTML="";
     orderItemsContainer.appendChild(createOrderItemRow());
     updateOrderTotal();
 
-    // Ankauf
-    if(ankImgURL)ankaufImg.src=ankaufImgURL;
+    if(ankImgURL) ankaufImg.src = ankImgURL; // <-- FIX HIER
+
     ankaufList.innerHTML="";
     ank.forEach(a=>{
       const li=document.createElement("li");li.className="ankauf-item";
@@ -854,7 +812,6 @@ orderForm.addEventListener("submit",async e=>{
       ankaufList.append(li);
     });
 
-    // Standort & Fotos
     if(standort||descStandort||p1||p2){
       standortSection.hidden=false;
       standortDescEl.textContent=descStandort||"";
@@ -863,7 +820,6 @@ orderForm.addEventListener("submit",async e=>{
       if(p2)photo2Img.src=p2;
     }
 
-    // Footer
     if(footerD||footerL){
       if(footerD)footerDescEl.textContent=footerD;
       if(footerL){footerLinkEl.textContent=footerL;footerLinkEl.href=footerL;}
@@ -875,7 +831,6 @@ orderForm.addEventListener("submit",async e=>{
     const err=document.createElement("div");err.className="hint";err.textContent="❌ Fehler beim Laden: "+e;
     document.querySelector(".page").prepend(err);
   }finally{
-    // Ladehinweis immer entfernen + Höhensyncs
     if(hintEl && hintEl.parentNode) hintEl.parentNode.removeChild(hintEl);
     syncAnkaufHeights();
     window.addEventListener("resize",()=>{ syncAnkaufHeights(); syncModalHeights(); updateOrderTotal(); });
