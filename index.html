@@ -8,17 +8,27 @@
   <!-- Orbitron als frei nutzbarer Ersatzstil (Antelope-H-Look) -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --wine-900:#12060a;
-      --wine-800:#1b0b10;
-      --wine-700:#2a121b;
-      --ink:#f2eceb;
-      --muted:#cdb9b8;
-      --line:#3b1d26;
-      --focus:#c27c8b55;
-      --radius:14px;
-      --price-wine:#b31636;
-    }
+:root{
+  /* Basis – warmes Weinbraun */
+  --wine-900:#3a1f14;   /* sehr dunkel, Hintergrund */
+  --wine-800:#4a2919;   /* Hauptfarbe (Referenzfarbe) */
+  --wine-700:#5e3421;   /* Karten, Flächen */
+
+  /* Text */
+  --ink:#f4ede9;        /* Haupttext – warmes Off-White */
+  --muted:#d4bfb4;      /* Sekundärtext */
+
+  /* Linien & Akzente */
+  --line:#6b3a26;       /* feine Linien / Rahmen */
+  --focus:#c89a7a66;    /* Fokus / Hover (halbtransparent) */
+
+  /* Layout */
+  --radius:14px;
+
+  /* Preis / Call-to-Action */
+  --price-wine:#a63a1f; /* kräftiges Kupfer-Rot */
+}
+
 
     *,*::before,*::after{box-sizing:border-box}
     html,body{height:100%}
@@ -839,3 +849,4 @@ orderForm.addEventListener("submit",async e=>{
 </script>
 </body>
 </html>
+
