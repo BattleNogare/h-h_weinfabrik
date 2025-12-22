@@ -348,73 +348,9 @@
     .order-status.err{
       color:#ff9aa2;
     }
-/* ===== Wartungs-/Umbau-Maske ===== */
-.maintenance-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background:
-    radial-gradient(900px 400px at 10% -20%, rgba(194,124,139,.15), transparent 60%),
-    rgba(18,6,10,0.95);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 2rem;
-}
-
-.maintenance-box {
-  max-width: 720px;
-  background: var(--wine-800);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 2.2rem 2rem;
-  box-shadow: 0 30px 70px rgba(0,0,0,.6);
-}
-
-.maintenance-box h2 {
-  margin: 0 0 1rem;
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  font-weight: 800;
-}
-
-.maintenance-box p {
-  margin: 0.4rem 0;
-  color: var(--muted);
-  font-size: 1.05rem;
-  line-height: 1.6;
-}
-
-.maintenance-box .highlight {
-  margin-top: 1.2rem;
-  font-weight: 700;
-  color: var(--ink);
-}
-
-    
   </style>
 </head>
 <body>
-
-  <div class="maintenance-overlay" style="display:none"> <!--      -->
-
-<div class="maintenance-overlay">
-  <div class="maintenance-box">
-    <h2>🍷 H&amp;H Weinfabrik</h2>
-    <p>
-      Unsere Weinfabrik wird derzeit <strong>umgebaut</strong> und neu für Sie vorbereitet.
-    </p>
-    <p>
-      Wir arbeiten im Hintergrund an Verbesserungen, neuen Weinen und einem
-      noch besseren Erlebnis.
-    </p>
-    <p class="highlight">
-      Die Bekanntgabe zur Wiedereröffnung folgt in Kürze.
-    </p>
-  </div>
-</div>
-
-  
   <div class="page">
     <header>
       <img class="logo" id="logoImg" alt="Logo" />
@@ -519,8 +455,7 @@
 <script>
 const SHEET_ID="18Q64WpaE2NAEmva0Y8dABSamcMfzcbVp2CJ1ToZ9Il8";
 const TAB_WEBSITE="Website",TAB_WEINE="Weine",TAB_ANKAUF="Ankauf";
-const DISCORD_WEBHOOK="https://discord.com/api/webhooks/1409574315598544906/zyhruAAcS2YgKTAWFb4TzR3XnDgzVma3f44Hygdn5tFY7RsXHOMgtTiMzQSZMzb3fX_a";
-  
+const DISCORD_WEBHOOK="https://discord.com/api/webhooks/1434918593828491308/AcpMTdB8Z0zXhvBhLn-be5GHl5A-PGe4MLOny03hHJcPCtCm0JwYbbk7HxtjBtRlD7rw";
 
 const logoImg=document.getElementById("logoImg"),logoDescEl=document.getElementById("logoDesc");
 const headerText=document.getElementById("headerText"),headerTextInner=document.getElementById("headerTextInner");
@@ -904,7 +839,3 @@ orderForm.addEventListener("submit",async e=>{
 </script>
 </body>
 </html>
-
-
-
-
